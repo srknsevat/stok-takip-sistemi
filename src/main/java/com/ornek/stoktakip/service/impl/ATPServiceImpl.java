@@ -1,5 +1,6 @@
 package com.ornek.stoktakip.service.impl;
 
+import com.ornek.stoktakip.dto.*;
 import com.ornek.stoktakip.entity.MaterialCard;
 import com.ornek.stoktakip.entity.Platform;
 import com.ornek.stoktakip.entity.PlatformProduct;
@@ -50,7 +51,10 @@ public class ATPServiceImpl implements ATPService {
         }
         
         // BOM yoksa, mevcut stok miktarını kullan
-        ATPResult result = new ATPResult(material, material.getCurrentStock(), material.getCurrentStock());
+        ATPResult result = new ATPResult();
+        result.setMaterial(material);
+        result.setCurrentStock(material.getCurrentStock());
+        result.setAvailableToPromise(material.getCurrentStock());
         result.setCalculationMethod("DIRECT_STOCK");
         result.setSafetyStock(material.getMinStockLevel());
         result.setReorderPoint(material.getReorderPoint());
@@ -67,8 +71,8 @@ public class ATPServiceImpl implements ATPService {
         }
         
         // BOM'u patlat ve tüm alt parçaları hesapla
-        Map<String, BomExplosionService.BomExplosionResult> explosionResults = 
-            bomExplosionService.explodeBOM(materialId, BigDecimal.ONE);
+        Map<MaterialCard, Double> explosionResults = 
+            bomExplosionService.explodeBom(materialId, 1.0);
         
         if (explosionResults.isEmpty()) {
             // BOM yoksa, mevcut stok miktarını kullan
@@ -79,9 +83,10 @@ public class ATPServiceImpl implements ATPService {
         BigDecimal minPossibleQuantity = null;
         List<ATPConstraint> constraints = new ArrayList<>();
         
-        for (BomExplosionService.BomExplosionResult explosionResult : explosionResults.values()) {
-            MaterialCard childMaterial = explosionResult.getMaterial();
-            BigDecimal requiredQuantity = explosionResult.getRequiredQuantity();
+        for (Map.Entry<MaterialCard, Double> entry : explosionResults.entrySet()) {
+            MaterialCard childMaterial = entry.getKey();
+            Double requiredQuantityDouble = entry.getValue();
+            BigDecimal requiredQuantity = BigDecimal.valueOf(requiredQuantityDouble);
             BigDecimal availableQuantity = childMaterial.getCurrentStock();
             
             // Bu alt parçadan kaç adet üretilebilir?
@@ -93,9 +98,11 @@ public class ATPServiceImpl implements ATPService {
             }
             
             // Kısıtlama oluştur
-            ATPConstraint constraint = new ATPConstraint(childMaterial, requiredQuantity, availableQuantity);
-            constraint.setBomLevel(explosionResult.getBomLevel());
-            constraint.setBomPath(explosionResult.getBomPath());
+            ATPConstraint constraint = new ATPConstraint();
+            constraint.setConstraintMaterial(childMaterial);
+            constraint.setRequiredQuantity(requiredQuantity);
+            constraint.setAvailableQuantity(availableQuantity);
+            constraint.setConstraintQuantity(availableQuantity.divide(requiredQuantity, 0, BigDecimal.ROUND_DOWN));
             constraint.setConstraintType("STOCK");
             constraint.setDescription(childMaterial.getMaterialName() + " stok kısıtlaması");
             
@@ -103,7 +110,10 @@ public class ATPServiceImpl implements ATPService {
         }
         
         // ATP sonucu oluştur
-        ATPResult result = new ATPResult(material, material.getCurrentStock(), minPossibleQuantity);
+        ATPResult result = new ATPResult();
+        result.setMaterial(material);
+        result.setCurrentStock(material.getCurrentStock());
+        result.setAvailableToPromise(minPossibleQuantity);
         result.setCalculationMethod("BOM_BASED");
         result.setConstraints(constraints);
         result.setSafetyStock(material.getMinStockLevel());
@@ -214,42 +224,38 @@ public class ATPServiceImpl implements ATPService {
         report.setAtpResult(atpResult);
         
         // Kısıtlamaları ekle
-        if (atpResult != null && atpResult.hasConstraints()) {
+        if (atpResult != null && atpResult.getConstraints() != null && !atpResult.getConstraints().isEmpty()) {
             report.setConstraints(atpResult.getConstraints());
         }
         
         // Platform stok bilgilerini ekle
         List<PlatformProduct> platformProducts = platformProductRepository.findByProductId(materialId);
-        List<PlatformStockInfo> platformStocks = new ArrayList<>();
+        Map<String, PlatformStockInfo> platformStocks = new HashMap<>();
         
         for (PlatformProduct platformProduct : platformProducts) {
             PlatformStockInfo stockInfo = new PlatformStockInfo();
-            stockInfo.setPlatform(platformProduct.getPlatform());
-            stockInfo.setPlatformProduct(platformProduct);
-            stockInfo.setCurrentStock(BigDecimal.valueOf(platformProduct.getPlatformStockQuantity()));
-            stockInfo.setAtpStock(atpResult != null ? atpResult.getAvailableToPromise() : BigDecimal.ZERO);
-            stockInfo.setLastSync(platformProduct.getLastSyncAt());
-            stockInfo.setSyncStatus("SYNCED");
+            stockInfo.setPlatformName(platformProduct.getPlatform().getPlatformName());
+            stockInfo.setPlatformCode(platformProduct.getPlatform().getPlatformCode());
+            stockInfo.setOldStock(platformProduct.getPlatformStockQuantity());
+            stockInfo.setNewStock(atpResult != null ? atpResult.getAvailableToPromise().intValue() : 0);
+            stockInfo.setUpdateSuccessful(true);
+            stockInfo.setUpdateTime(platformProduct.getLastSyncAt());
             
-            platformStocks.add(stockInfo);
+            platformStocks.put(platformProduct.getPlatform().getPlatformCode(), stockInfo);
         }
         
-        report.setPlatformStocks(platformStocks);
+        report.setPlatformStockUpdates(platformStocks);
         
-        // Özet oluştur
-        StringBuilder summary = new StringBuilder();
-        summary.append("ATP Raporu - ").append(material.getMaterialCode()).append("\n");
-        summary.append("Mevcut Stok: ").append(material.getCurrentStock()).append("\n");
-        if (atpResult != null) {
-            summary.append("ATP Miktarı: ").append(atpResult.getAvailableToPromise()).append("\n");
-            summary.append("Hesaplama Yöntemi: ").append(atpResult.getCalculationMethod()).append("\n");
-            if (atpResult.hasConstraints()) {
-                summary.append("Kısıtlamalar: ").append(atpResult.getConstraints().size()).append(" adet\n");
-            }
+        // Uyarılar ve hatalar
+        List<String> warnings = new ArrayList<>();
+        List<String> errors = new ArrayList<>();
+        
+        if (atpResult != null && atpResult.getConstraints() != null && !atpResult.getConstraints().isEmpty()) {
+            warnings.add("Stok kısıtlamaları mevcut: " + atpResult.getConstraints().size() + " adet");
         }
-        summary.append("Platform Sayısı: ").append(platformStocks.size()).append("\n");
         
-        report.setSummary(summary.toString());
+        report.setWarnings(warnings);
+        report.setErrors(errors);
         
         return report;
     }
@@ -274,19 +280,19 @@ public class ATPServiceImpl implements ATPService {
         analysis.setCurrentATP(atpResult.getAvailableToPromise());
         
         // Kısıtlamaları analiz et
-        if (atpResult.hasConstraints()) {
+        if (atpResult.getConstraints() != null && !atpResult.getConstraints().isEmpty()) {
             List<ATPConstraint> constraints = atpResult.getConstraints();
             
             // Birincil kısıtlamalar (en kısıtlayıcı olanlar)
             List<ATPConstraint> primaryConstraints = constraints.stream()
-                .filter(ATPConstraint::isConstraint)
+                .filter(constraint -> constraint.getConstraintQuantity() != null && constraint.getConstraintQuantity().compareTo(BigDecimal.ZERO) > 0)
                 .sorted(Comparator.comparing(ATPConstraint::getConstraintQuantity))
                 .limit(3)
                 .collect(Collectors.toList());
             
             // İkincil kısıtlamalar (diğerleri)
             List<ATPConstraint> secondaryConstraints = constraints.stream()
-                .filter(ATPConstraint::isConstraint)
+                .filter(constraint -> constraint.getConstraintQuantity() != null && constraint.getConstraintQuantity().compareTo(BigDecimal.ZERO) > 0)
                 .sorted(Comparator.comparing(ATPConstraint::getConstraintQuantity))
                 .skip(3)
                 .collect(Collectors.toList());
