@@ -5,8 +5,7 @@ import com.ornek.stoktakip.entity.Platform;
 import com.ornek.stoktakip.entity.PlatformProduct;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public interface ATPService {
     
