@@ -358,4 +358,23 @@ public class MaterialCardServiceImpl implements MaterialCardService {
     public List<MaterialCard> getSerialControlledMaterials() {
         return materialCardRepository.findBySerialControlledTrue();
     }
+    
+    // Dashboard için ek metodlar
+    @Override
+    @Transactional(readOnly = true)
+    public long countAllMaterialCards() {
+        return materialCardRepository.count();
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public long getTotalStock() {
+        return materialCardRepository.sumCurrentStock();
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public BigDecimal getTotalValue() {
+        return materialCardRepository.calculateTotalStockValue();
+    }
 }

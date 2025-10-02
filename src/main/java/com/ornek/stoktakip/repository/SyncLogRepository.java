@@ -1,7 +1,5 @@
 package com.ornek.stoktakip.repository;
 
-import com.ornek.stoktakip.entity.Platform;
-import com.ornek.stoktakip.entity.Product;
 import com.ornek.stoktakip.entity.SyncLog;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -14,41 +12,44 @@ import java.util.List;
 @Repository
 public interface SyncLogRepository extends JpaRepository<SyncLog, Long> {
     
-    List<SyncLog> findByPlatform(Platform platform);
+    List<SyncLog> findByPlatformId(Long platformId);
     
-    List<SyncLog> findByProduct(Product product);
+    List<SyncLog> findBySyncStatus(String syncStatus);
     
-    List<SyncLog> findBySyncStatus(SyncLog.SyncStatus syncStatus);
+    List<SyncLog> findBySyncType(String syncType);
     
-    List<SyncLog> findBySyncType(SyncLog.SyncType syncType);
+    List<SyncLog> findBySyncDateBetween(LocalDateTime startDate, LocalDateTime endDate);
     
-    List<SyncLog> findByPlatformAndSyncStatus(Platform platform, SyncLog.SyncStatus syncStatus);
+    List<SyncLog> findByPlatformIdAndSyncDateBetween(Long platformId, LocalDateTime startDate, LocalDateTime endDate);
     
-    List<SyncLog> findByProductAndSyncStatus(Product product, SyncLog.SyncStatus syncStatus);
+    List<SyncLog> findByPlatformIdAndSyncStatus(Long platformId, String syncStatus);
     
-    @Query("SELECT sl FROM SyncLog sl WHERE sl.syncStatus = 'RETRY' AND sl.nextRetryAt <= :now")
-    List<SyncLog> findRetryableSyncs(@Param("now") LocalDateTime now);
+    List<SyncLog> findBySyncStatusAndSyncDateBetween(String syncStatus, LocalDateTime startDate, LocalDateTime endDate);
     
-    @Query("SELECT sl FROM SyncLog sl WHERE sl.platform = :platform AND sl.syncStatus = 'FAILED' AND sl.retryCount < sl.maxRetryCount")
-    List<SyncLog> findFailedSyncsByPlatform(@Param("platform") Platform platform);
+    @Query("SELECT sl FROM SyncLog sl WHERE sl.platform.id = :platformId ORDER BY sl.syncDate DESC")
+    List<SyncLog> findRecentByPlatformId(@Param("platformId") Long platformId);
     
-    @Query("SELECT sl FROM SyncLog sl WHERE sl.syncStatus IN ('PENDING', 'IN_PROGRESS')")
-    List<SyncLog> findActiveSyncs();
+    @Query("SELECT sl FROM SyncLog sl WHERE sl.syncStatus = 'FAILED' ORDER BY sl.syncDate DESC")
+    List<SyncLog> findFailedSyncs();
     
-    @Query("SELECT sl FROM SyncLog sl WHERE sl.platform = :platform AND sl.createdAt BETWEEN :startDate AND :endDate")
-    List<SyncLog> findByPlatformAndDateRange(@Param("platform") Platform platform, 
-                                            @Param("startDate") LocalDateTime startDate, 
-                                            @Param("endDate") LocalDateTime endDate);
+    @Query("SELECT sl FROM SyncLog sl WHERE sl.syncStatus = 'SUCCESS' ORDER BY sl.syncDate DESC")
+    List<SyncLog> findSuccessfulSyncs();
     
-    @Query("SELECT COUNT(sl) FROM SyncLog sl WHERE sl.platform = :platform AND sl.syncStatus = :status AND sl.createdAt BETWEEN :startDate AND :endDate")
-    long countByPlatformAndStatusAndDateRange(@Param("platform") Platform platform, 
-                                             @Param("status") SyncLog.SyncStatus status,
-                                             @Param("startDate") LocalDateTime startDate, 
-                                             @Param("endDate") LocalDateTime endDate);
+    @Query("SELECT sl FROM SyncLog sl WHERE sl.platform.id = :platformId AND sl.syncStatus = 'FAILED' ORDER BY sl.syncDate DESC")
+    List<SyncLog> findFailedSyncsByPlatform(@Param("platformId") Long platformId);
     
-    @Query("SELECT sl FROM SyncLog sl WHERE sl.syncStatus = 'SUCCESS' AND sl.createdAt >= :since ORDER BY sl.createdAt DESC")
-    List<SyncLog> findRecentSuccessfulSyncs(@Param("since") LocalDateTime since);
+    @Query("SELECT COUNT(sl) FROM SyncLog sl WHERE sl.platform.id = :platformId")
+    Long countByPlatformId(@Param("platformId") Long platformId);
     
-    @Query("SELECT sl FROM SyncLog sl WHERE sl.syncStatus = 'FAILED' AND sl.createdAt >= :since ORDER BY sl.createdAt DESC")
-    List<SyncLog> findRecentFailedSyncs(@Param("since") LocalDateTime since);
+    @Query("SELECT COUNT(sl) FROM SyncLog sl WHERE sl.syncStatus = :status")
+    Long countBySyncStatus(@Param("status") String status);
+    
+    @Query("SELECT COUNT(sl) FROM SyncLog sl WHERE sl.syncType = :type")
+    Long countBySyncType(@Param("type") String type);
+    
+    @Query("SELECT COUNT(sl) FROM SyncLog sl WHERE sl.platform.id = :platformId AND sl.syncStatus = :status")
+    Long countByPlatformIdAndSyncStatus(@Param("platformId") Long platformId, @Param("status") String status);
+    
+    @Query("SELECT sl FROM SyncLog sl WHERE sl.syncDate >= :startDate AND sl.syncDate <= :endDate ORDER BY sl.syncDate DESC")
+    List<SyncLog> findRecentSyncs(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
 }

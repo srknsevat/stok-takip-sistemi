@@ -69,6 +69,13 @@ public interface MaterialCardService {
     
     long getLowStockMaterialCount();
     
+    // Dashboard için ek metodlar
+    long countAllMaterialCards();
+    
+    long getTotalStock();
+    
+    BigDecimal getTotalValue();
+    
     // Doğrulama
     boolean isMaterialCodeExists(String materialCode);
     

@@ -1,9 +1,9 @@
 package com.ornek.stoktakip.controller;
 
 import com.ornek.stoktakip.entity.Platform;
-import com.ornek.stoktakip.entity.Product;
+import com.ornek.stoktakip.entity.MaterialCard;
 import com.ornek.stoktakip.service.PlatformService;
-import com.ornek.stoktakip.service.ProductService;
+import com.ornek.stoktakip.service.MaterialCardService;
 import com.ornek.stoktakip.service.StockSyncService;
 import com.ornek.stoktakip.repository.OrderRepository;
 import com.ornek.stoktakip.repository.SyncLogRepository;
@@ -11,8 +11,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.http.ResponseEntity;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -26,19 +29,19 @@ import java.util.Map;
 public class DashboardController {
     
     private final PlatformService platformService;
-    private final ProductService productService;
+    private final MaterialCardService materialCardService;
     private final StockSyncService stockSyncService;
     private final OrderRepository orderRepository;
     private final SyncLogRepository syncLogRepository;
     
     @Autowired
     public DashboardController(PlatformService platformService,
-                             ProductService productService,
+                             MaterialCardService materialCardService,
                              StockSyncService stockSyncService,
                              OrderRepository orderRepository,
                              SyncLogRepository syncLogRepository) {
         this.platformService = platformService;
-        this.productService = productService;
+        this.materialCardService = materialCardService;
         this.stockSyncService = stockSyncService;
         this.orderRepository = orderRepository;
         this.syncLogRepository = syncLogRepository;
@@ -183,7 +186,7 @@ public class DashboardController {
     @GetMapping("/api/real-time-stock")
     public ResponseEntity<Map<String, Object>> getRealTimeStock(@RequestParam Long productId) {
         try {
-            Product product = productService.getProductById(productId).orElse(null);
+            MaterialCard product = materialCardService.getMaterialCardById(productId).orElse(null);
             if (product == null) {
                 return ResponseEntity.notFound().build();
             }
@@ -193,11 +196,11 @@ public class DashboardController {
             
             Map<String, Object> response = new HashMap<>();
             response.put("productId", productId);
-            response.put("productName", product.getName());
-            response.put("currentStock", product.getStockQuantity());
+            response.put("productName", product.getMaterialName());
+            response.put("currentStock", product.getCurrentStock());
             response.put("realTimeStock", realTimeStock);
             response.put("isSynced", isSynced);
-            response.put("lastSyncAt", product.getLastSyncAt());
+            response.put("lastSyncAt", product.getUpdatedAt());
             
             return ResponseEntity.ok(response);
             
@@ -244,15 +247,15 @@ public class DashboardController {
         Map<String, Object> stats = new HashMap<>();
         
         // Toplam ürün sayısı
-        long totalProducts = productService.getTotalProducts();
+        long totalProducts = materialCardService.countAllMaterialCards();
         stats.put("totalProducts", totalProducts);
         
         // Toplam stok miktarı
-        long totalStock = productService.getTotalStock();
+        long totalStock = materialCardService.getTotalStock();
         stats.put("totalStock", totalStock);
         
         // Toplam stok değeri
-        BigDecimal totalValue = productService.getTotalValue();
+        BigDecimal totalValue = materialCardService.getTotalValue();
         stats.put("totalValue", totalValue);
         
         // Aktif platform sayısı

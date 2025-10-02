@@ -98,4 +98,8 @@ public interface MaterialCardRepository extends JpaRepository<MaterialCard, Long
     List<MaterialCard> findByCertificationRequiredTrue();
     
     List<MaterialCard> findByInspectionRequiredTrue();
+    
+    // Dashboard için ek metodlar
+    @Query("SELECT SUM(m.currentStock) FROM MaterialCard m")
+    long sumCurrentStock();
 }

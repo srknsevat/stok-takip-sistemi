@@ -9,42 +9,68 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Long> {
     
-    Optional<Order> findByOrderNumber(String orderNumber);
+    List<Order> findByPlatformId(Long platformId);
     
-    Optional<Order> findByPlatformOrderIdAndPlatform(String platformOrderId, Platform platform);
-    
-    List<Order> findByPlatform(Platform platform);
+    List<Order> findByProductId(Long productId);
     
     List<Order> findByOrderStatus(Order.OrderStatus orderStatus);
     
-    List<Order> findByPaymentStatus(Order.PaymentStatus paymentStatus);
+    List<Order> findByOrderType(Order.OrderType orderType);
     
-    List<Order> findByPlatformAndOrderStatus(Platform platform, Order.OrderStatus orderStatus);
+    List<Order> findByOrderDateBetween(LocalDateTime startDate, LocalDateTime endDate);
     
-    @Query("SELECT o FROM Order o WHERE o.orderDate BETWEEN :startDate AND :endDate")
-    List<Order> findByOrderDateBetween(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
+    List<Order> findByPlatformAndOrderDateBetween(Platform platform, LocalDateTime startDate, LocalDateTime endDate);
     
-    @Query("SELECT o FROM Order o WHERE o.platform = :platform AND o.orderDate BETWEEN :startDate AND :endDate")
-    List<Order> findByPlatformAndOrderDateBetween(@Param("platform") Platform platform, 
-                                                  @Param("startDate") LocalDateTime startDate, 
-                                                  @Param("endDate") LocalDateTime endDate);
+    List<Order> findByPlatformIdAndOrderDateBetween(Long platformId, LocalDateTime startDate, LocalDateTime endDate);
     
-    @Query("SELECT COUNT(o) FROM Order o WHERE o.platform = :platform AND o.orderStatus = :status")
-    long countByPlatformAndStatus(@Param("platform") Platform platform, @Param("status") Order.OrderStatus status);
+    List<Order> findByOrderNumberContainingIgnoreCase(String orderNumber);
     
-    @Query("SELECT SUM(o.totalAmount) FROM Order o WHERE o.platform = :platform AND o.orderDate BETWEEN :startDate AND :endDate AND o.paymentStatus = 'PAID'")
-    Double sumTotalAmountByPlatformAndDateRange(@Param("platform") Platform platform, 
-                                               @Param("startDate") LocalDateTime startDate, 
-                                               @Param("endDate") LocalDateTime endDate);
+    List<Order> findByCustomerNameContainingIgnoreCase(String customerName);
     
-    @Query("SELECT o FROM Order o WHERE o.orderStatus IN ('PENDING', 'CONFIRMED', 'PROCESSING')")
-    List<Order> findActiveOrders();
+    List<Order> findByCustomerEmailContainingIgnoreCase(String customerEmail);
     
-    @Query("SELECT o FROM Order o WHERE o.platform = :platform AND o.orderStatus IN ('PENDING', 'CONFIRMED', 'PROCESSING')")
-    List<Order> findActiveOrdersByPlatform(@Param("platform") Platform platform);
+    List<Order> findByPlatformOrderId(String platformOrderId);
+    
+    @Query("SELECT o FROM Order o WHERE o.platform.id = :platformId AND o.orderDate >= :startDate AND o.orderDate <= :endDate")
+    List<Order> findByPlatformAndDateRange(@Param("platformId") Long platformId, 
+                                          @Param("startDate") LocalDateTime startDate, 
+                                          @Param("endDate") LocalDateTime endDate);
+    
+    @Query("SELECT COUNT(o) FROM Order o WHERE o.platform.id = :platformId AND o.orderDate >= :startDate AND o.orderDate <= :endDate")
+    Long countByPlatformAndDateRange(@Param("platformId") Long platformId, 
+                                    @Param("startDate") LocalDateTime startDate, 
+                                    @Param("endDate") LocalDateTime endDate);
+    
+    @Query("SELECT COUNT(o) FROM Order o WHERE o.platform = :platform AND o.orderDate >= :startDate AND o.orderDate <= :endDate")
+    Long countByPlatformAndOrderDateBetween(@Param("platform") Platform platform, 
+                                           @Param("startDate") LocalDateTime startDate, 
+                                           @Param("endDate") LocalDateTime endDate);
+    
+    @Query("SELECT o FROM Order o WHERE o.orderDate >= :startDate AND o.orderDate <= :endDate ORDER BY o.orderDate DESC")
+    List<Order> findRecentOrders(@Param("startDate") LocalDateTime startDate, 
+                                @Param("endDate") LocalDateTime endDate);
+    
+    @Query("SELECT o FROM Order o WHERE o.platform.id = :platformId ORDER BY o.orderDate DESC")
+    List<Order> findRecentOrdersByPlatform(@Param("platformId") Long platformId);
+    
+    @Query("SELECT o FROM Order o WHERE o.orderStatus = :status AND o.orderDate >= :startDate AND o.orderDate <= :endDate")
+    List<Order> findByStatusAndDateRange(@Param("status") Order.OrderStatus status, 
+                                        @Param("startDate") LocalDateTime startDate, 
+                                        @Param("endDate") LocalDateTime endDate);
+    
+    @Query("SELECT COUNT(o) FROM Order o WHERE o.orderStatus = :status")
+    Long countByOrderStatus(@Param("status") Order.OrderStatus status);
+    
+    @Query("SELECT COUNT(o) FROM Order o WHERE o.orderType = :type")
+    Long countByOrderType(@Param("type") Order.OrderType type);
+    
+    @Query("SELECT COUNT(o) FROM Order o WHERE o.platform.id = :platformId")
+    Long countByPlatformId(@Param("platformId") Long platformId);
+    
+    @Query("SELECT COUNT(o) FROM Order o WHERE o.product.id = :productId")
+    Long countByProductId(@Param("productId") Long productId);
 }

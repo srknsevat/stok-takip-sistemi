@@ -1,65 +1,59 @@
 package com.ornek.stoktakip.service;
 
+import com.ornek.stoktakip.entity.MaterialCard;
 import com.ornek.stoktakip.entity.Platform;
-import com.ornek.stoktakip.entity.Product;
+import java.util.List;
+import java.util.Map;
 
-/**
- * Stok senkronizasyon servisi interface'i
- */
 public interface StockSyncService {
     
     /**
-     * Tüm platformlarda stok senkronizasyonu
+     * Gerçek zamanlı stok hesaplama
      */
-    void syncAllPlatforms();
+    Integer calculateRealTimeStock(MaterialCard product);
     
     /**
-     * Belirli bir platformda stok senkronizasyonu
+     * Stok senkronizasyon durumu kontrolü
+     */
+    boolean isStockSynced(MaterialCard product);
+    
+    /**
+     * Platform senkronizasyonu
      */
     void syncPlatform(Platform platform);
     
     /**
-     * Belirli bir ürünün tüm platformlarda senkronizasyonu
+     * Tüm platformları senkronize et
      */
-    void syncProduct(Product product);
+    void syncAllPlatforms();
     
     /**
-     * Stok güncelleme işlemi (satış sonrası)
+     * Belirli bir ürünü tüm platformlarda senkronize et
      */
-    void updateStockAfterSale(Product product, Integer soldQuantity);
+    void syncProductOnAllPlatforms(MaterialCard product);
     
     /**
-     * Stok geri yükleme işlemi (iade sonrası)
+     * Senkronizasyon durumu raporu
      */
-    void restoreStockAfterReturn(Product product, Integer returnedQuantity);
+    Map<String, Object> getSyncStatus();
     
     /**
-     * Manuel stok güncelleme
+     * Başarısız senkronizasyonları getir
      */
-    void updateStockManually(Product product, Integer newStockQuantity);
+    List<Map<String, Object>> getFailedSyncs();
     
     /**
-     * Başarısız senkronizasyonları tekrar dene
+     * Platform senkronizasyon durumları
      */
-    void retryFailedSyncs();
+    List<Map<String, Object>> getPlatformSyncStatus();
     
     /**
-     * Platform'lar arası stok tutarlılığını kontrol et
+     * Senkronizasyon geçmişi
      */
-    void checkStockConsistency();
+    List<Map<String, Object>> getSyncHistory(Long platformId);
     
     /**
-     * Gerçek zamanlı stok durumunu hesapla
+     * Senkronizasyon istatistikleri
      */
-    Integer calculateRealTimeStock(Product product);
-    
-    /**
-     * Stok senkronizasyon durumunu kontrol et
-     */
-    boolean isStockSynced(Product product);
-    
-    /**
-     * Platform'da stok güncelleme
-     */
-    boolean updateStockOnPlatform(Platform platform, Product product, Integer newStockQuantity);
+    Map<String, Object> getSyncStatistics();
 }
