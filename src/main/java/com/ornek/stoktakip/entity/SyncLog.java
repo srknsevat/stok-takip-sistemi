@@ -11,15 +11,14 @@ public class SyncLog {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "platform_id", nullable = false)
-    private Platform platform;
+    @Column(name = "platform_id", nullable = false)
+    private Long platformId;
     
     @Column(name = "sync_type", nullable = false)
-    private String syncType; // STOCK, PRODUCT, ORDER, etc.
+    private String syncType; // FULL, INCREMENTAL, STOCK_UPDATE
     
-    @Column(name = "sync_status", nullable = false)
-    private String syncStatus; // SUCCESS, FAILED, IN_PROGRESS
+    @Column(name = "status", nullable = false)
+    private String status; // SUCCESS, FAILED, IN_PROGRESS
     
     @Column(name = "sync_date", nullable = false)
     private LocalDateTime syncDate;
@@ -34,51 +33,39 @@ public class SyncLog {
     private Long durationSeconds;
     
     @Column(name = "records_processed")
-    private Integer recordsProcessed = 0;
+    private Integer recordsProcessed;
     
-    @Column(name = "records_successful")
-    private Integer recordsSuccessful = 0;
+    @Column(name = "records_success")
+    private Integer recordsSuccess;
     
     @Column(name = "records_failed")
-    private Integer recordsFailed = 0;
+    private Integer recordsFailed;
     
     @Column(name = "error_message", columnDefinition = "TEXT")
     private String errorMessage;
     
     @Column(name = "sync_details", columnDefinition = "TEXT")
-    private String syncDetails; // JSON details
+    private String syncDetails;
     
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
-    
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
     
     // JPA Lifecycle Callbacks
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
         if (syncDate == null) {
             syncDate = LocalDateTime.now();
-        }
-    }
-    
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
-        if (startTime != null && endTime != null) {
-            durationSeconds = java.time.Duration.between(startTime, endTime).getSeconds();
         }
     }
     
     // Constructors
     public SyncLog() {}
     
-    public SyncLog(Platform platform, String syncType, String syncStatus) {
-        this.platform = platform;
+    public SyncLog(Long platformId, String syncType, String status) {
+        this.platformId = platformId;
         this.syncType = syncType;
-        this.syncStatus = syncStatus;
+        this.status = status;
         this.syncDate = LocalDateTime.now();
     }
     
@@ -86,14 +73,14 @@ public class SyncLog {
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     
-    public Platform getPlatform() { return platform; }
-    public void setPlatform(Platform platform) { this.platform = platform; }
+    public Long getPlatformId() { return platformId; }
+    public void setPlatformId(Long platformId) { this.platformId = platformId; }
     
     public String getSyncType() { return syncType; }
     public void setSyncType(String syncType) { this.syncType = syncType; }
     
-    public String getSyncStatus() { return syncStatus; }
-    public void setSyncStatus(String syncStatus) { this.syncStatus = syncStatus; }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
     
     public LocalDateTime getSyncDate() { return syncDate; }
     public void setSyncDate(LocalDateTime syncDate) { this.syncDate = syncDate; }
@@ -110,8 +97,8 @@ public class SyncLog {
     public Integer getRecordsProcessed() { return recordsProcessed; }
     public void setRecordsProcessed(Integer recordsProcessed) { this.recordsProcessed = recordsProcessed; }
     
-    public Integer getRecordsSuccessful() { return recordsSuccessful; }
-    public void setRecordsSuccessful(Integer recordsSuccessful) { this.recordsSuccessful = recordsSuccessful; }
+    public Integer getRecordsSuccess() { return recordsSuccess; }
+    public void setRecordsSuccess(Integer recordsSuccess) { this.recordsSuccess = recordsSuccess; }
     
     public Integer getRecordsFailed() { return recordsFailed; }
     public void setRecordsFailed(Integer recordsFailed) { this.recordsFailed = recordsFailed; }
@@ -124,33 +111,4 @@ public class SyncLog {
     
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
-    
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
-    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
-    
-    // Helper methods
-    public void startSync() {
-        this.startTime = LocalDateTime.now();
-        this.syncStatus = "IN_PROGRESS";
-    }
-    
-    public void endSync(boolean success) {
-        this.endTime = LocalDateTime.now();
-        this.syncStatus = success ? "SUCCESS" : "FAILED";
-        if (startTime != null) {
-            this.durationSeconds = java.time.Duration.between(startTime, endTime).getSeconds();
-        }
-    }
-    
-    public void addRecordProcessed() {
-        this.recordsProcessed++;
-    }
-    
-    public void addRecordSuccessful() {
-        this.recordsSuccessful++;
-    }
-    
-    public void addRecordFailed() {
-        this.recordsFailed++;
-    }
 }

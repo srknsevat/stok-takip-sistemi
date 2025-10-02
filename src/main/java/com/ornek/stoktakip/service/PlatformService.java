@@ -46,4 +46,7 @@ public interface PlatformService {
     boolean updateAllPlatformStocks();
     
     Map<String, Object> getPlatformStockUpdates(Long platformId);
+    
+    // Platform yönetimi metodları
+    boolean deletePlatform(Long id);
 }
