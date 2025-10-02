@@ -42,13 +42,13 @@ public interface UserRepository extends JpaRepository<User, Long> {
     List<User> findUsersNeverLoggedIn();
     
     @Query("SELECT COUNT(u) FROM User u WHERE u.isActive = true")
-    Long countActiveUsers();
+    long countActiveUsers();
     
     @Query("SELECT COUNT(u) FROM User u WHERE u.role = :role")
-    Long countByRole(@Param("role") User.UserRole role);
+    long countByRole(@Param("role") User.UserRole role);
     
     @Query("SELECT COUNT(u) FROM User u WHERE u.isActive = true AND u.role = :role")
-    Long countActiveByRole(@Param("role") User.UserRole role);
+    long countActiveByRole(@Param("role") User.UserRole role);
     
     @Query("SELECT u FROM User u WHERE u.isActive = true ORDER BY u.lastLoginAt DESC")
     List<User> findActiveUsersOrderByLastLogin();

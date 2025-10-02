@@ -26,14 +26,14 @@ public class OrderItem {
     @Column(name = "unit_price", nullable = false)
     private BigDecimal unitPrice;
     
-    @Column(name = "total_amount", nullable = false)
-    private BigDecimal totalAmount;
+    @Column(name = "total_price", nullable = false)
+    private BigDecimal totalPrice;
     
-    @Column(name = "discount_amount")
-    private BigDecimal discountAmount = BigDecimal.ZERO;
+    @Column(name = "unit", length = 20)
+    private String unit = "ADET";
     
-    @Column(name = "tax_amount")
-    private BigDecimal taxAmount = BigDecimal.ZERO;
+    @Column(name = "description", columnDefinition = "TEXT")
+    private String description;
     
     @Column(name = "notes", columnDefinition = "TEXT")
     private String notes;
@@ -49,13 +49,17 @@ public class OrderItem {
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
-        calculateTotalAmount();
+        if (quantity != null && unitPrice != null) {
+            totalPrice = quantity.multiply(unitPrice);
+        }
     }
     
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
-        calculateTotalAmount();
+        if (quantity != null && unitPrice != null) {
+            totalPrice = quantity.multiply(unitPrice);
+        }
     }
     
     // Constructors
@@ -66,7 +70,7 @@ public class OrderItem {
         this.product = product;
         this.quantity = quantity;
         this.unitPrice = unitPrice;
-        calculateTotalAmount();
+        this.totalPrice = quantity.multiply(unitPrice);
     }
     
     // Getters and Setters
@@ -82,29 +86,27 @@ public class OrderItem {
     public BigDecimal getQuantity() { return quantity; }
     public void setQuantity(BigDecimal quantity) { 
         this.quantity = quantity;
-        calculateTotalAmount();
+        if (unitPrice != null) {
+            this.totalPrice = quantity.multiply(unitPrice);
+        }
     }
     
     public BigDecimal getUnitPrice() { return unitPrice; }
     public void setUnitPrice(BigDecimal unitPrice) { 
         this.unitPrice = unitPrice;
-        calculateTotalAmount();
+        if (quantity != null) {
+            this.totalPrice = quantity.multiply(unitPrice);
+        }
     }
     
-    public BigDecimal getTotalAmount() { return totalAmount; }
-    public void setTotalAmount(BigDecimal totalAmount) { this.totalAmount = totalAmount; }
+    public BigDecimal getTotalPrice() { return totalPrice; }
+    public void setTotalPrice(BigDecimal totalPrice) { this.totalPrice = totalPrice; }
     
-    public BigDecimal getDiscountAmount() { return discountAmount; }
-    public void setDiscountAmount(BigDecimal discountAmount) { 
-        this.discountAmount = discountAmount;
-        calculateTotalAmount();
-    }
+    public String getUnit() { return unit; }
+    public void setUnit(String unit) { this.unit = unit; }
     
-    public BigDecimal getTaxAmount() { return taxAmount; }
-    public void setTaxAmount(BigDecimal taxAmount) { 
-        this.taxAmount = taxAmount;
-        calculateTotalAmount();
-    }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
     
     public String getNotes() { return notes; }
     public void setNotes(String notes) { this.notes = notes; }
@@ -114,18 +116,4 @@ public class OrderItem {
     
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
-    
-    // Helper methods
-    private void calculateTotalAmount() {
-        if (quantity != null && unitPrice != null) {
-            BigDecimal subtotal = quantity.multiply(unitPrice);
-            if (discountAmount != null) {
-                subtotal = subtotal.subtract(discountAmount);
-            }
-            if (taxAmount != null) {
-                subtotal = subtotal.add(taxAmount);
-            }
-            this.totalAmount = subtotal;
-        }
-    }
 }

@@ -41,12 +41,12 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
                                           @Param("endDate") LocalDateTime endDate);
     
     @Query("SELECT COUNT(o) FROM Order o WHERE o.platform.id = :platformId AND o.orderDate >= :startDate AND o.orderDate <= :endDate")
-    Long countByPlatformAndDateRange(@Param("platformId") Long platformId, 
+    long countByPlatformAndDateRange(@Param("platformId") Long platformId, 
                                     @Param("startDate") LocalDateTime startDate, 
                                     @Param("endDate") LocalDateTime endDate);
     
     @Query("SELECT COUNT(o) FROM Order o WHERE o.platform = :platform AND o.orderDate >= :startDate AND o.orderDate <= :endDate")
-    Long countByPlatformAndOrderDateBetween(@Param("platform") Platform platform, 
+    long countByPlatformAndOrderDateBetween(@Param("platform") Platform platform, 
                                            @Param("startDate") LocalDateTime startDate, 
                                            @Param("endDate") LocalDateTime endDate);
     
@@ -63,20 +63,20 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
                                         @Param("endDate") LocalDateTime endDate);
     
     @Query("SELECT COUNT(o) FROM Order o WHERE o.orderStatus = :status")
-    Long countByOrderStatus(@Param("status") Order.OrderStatus status);
+    long countByOrderStatus(@Param("status") Order.OrderStatus status);
     
     @Query("SELECT COUNT(o) FROM Order o WHERE o.orderType = :type")
-    Long countByOrderType(@Param("type") Order.OrderType type);
+    long countByOrderType(@Param("type") Order.OrderType type);
     
     @Query("SELECT COUNT(o) FROM Order o WHERE o.platform.id = :platformId")
-    Long countByPlatformId(@Param("platformId") Long platformId);
+    long countByPlatformId(@Param("platformId") Long platformId);
     
     @Query("SELECT COUNT(o) FROM Order o WHERE o.product.id = :productId")
-    Long countByProductId(@Param("productId") Long productId);
+    long countByProductId(@Param("productId") Long productId);
     
     // Status için alias metodlar
     List<Order> findByStatus(Order.OrderStatus status);
     
     @Query("SELECT COUNT(o) FROM Order o WHERE o.orderStatus = :status")
-    Long countByStatus(@Param("status") Order.OrderStatus status);
+    long countByStatus(@Param("status") Order.OrderStatus status);
 }

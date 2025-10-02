@@ -127,4 +127,11 @@ public interface BillOfMaterialRepository extends JpaRepository<BillOfMaterial, 
     @Query("SELECT b FROM BillOfMaterial b WHERE b.parentMaterial.id = :parentMaterialId " +
            "AND b.effectiveFrom > b.effectiveTo")
     List<BillOfMaterial> findInvalidDateRanges(@Param("parentMaterialId") Long parentMaterialId);
+    
+    // Eksik metodlar
+    boolean existsByParentMaterialId(Long parentMaterialId);
+    
+    boolean existsByChildMaterialId(Long childMaterialId);
+    
+    boolean existsByParentMaterialIdAndChildMaterialId(Long parentId, Long childId);
 }

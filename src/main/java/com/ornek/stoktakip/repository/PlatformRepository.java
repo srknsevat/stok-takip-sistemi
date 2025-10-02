@@ -42,10 +42,10 @@ public interface PlatformRepository extends JpaRepository<Platform, Long> {
     List<Platform> findActiveWithExpiredTokens(@Param("date") LocalDateTime date);
     
     @Query("SELECT COUNT(p) FROM Platform p WHERE p.isActive = true")
-    Long countActivePlatforms();
+    long countActivePlatforms();
     
     @Query("SELECT COUNT(p) FROM Platform p WHERE p.isActive = true AND p.syncEnabled = true")
-    Long countActiveAndSyncEnabled();
+    long countActiveAndSyncEnabled();
     
     @Query("SELECT p FROM Platform p WHERE p.isActive = true AND p.syncEnabled = true AND (p.lastSyncAt IS NULL OR p.lastSyncAt < :date)")
     List<Platform> findPlatformsNeedingSync(@Param("date") LocalDateTime date);
