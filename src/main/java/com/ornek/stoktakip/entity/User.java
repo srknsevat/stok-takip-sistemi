@@ -155,4 +155,36 @@ public class User {
     public boolean canManageUsers() {
         return role == UserRole.SUPER_ADMIN || role == UserRole.ADMIN;
     }
+    
+    // Spring Security için gerekli metodlar
+    public boolean isAccountNonExpired() {
+        return isActive;
+    }
+    
+    public boolean isAccountNonLocked() {
+        return isActive;
+    }
+    
+    public boolean isCredentialsNonExpired() {
+        return isActive;
+    }
+    
+    public boolean isEnabled() {
+        return isActive;
+    }
+    
+    public java.util.Collection<String> getRoles() {
+        java.util.List<String> roles = new java.util.ArrayList<>();
+        roles.add("ROLE_" + role.name());
+        return roles;
+    }
+    
+    public boolean hasAnyRole(UserRole... roles) {
+        for (UserRole role : roles) {
+            if (this.role == role) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

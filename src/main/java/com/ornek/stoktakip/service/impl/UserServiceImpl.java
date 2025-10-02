@@ -269,4 +269,37 @@ public class UserServiceImpl implements UserService {
     public List<User> getUsersNeverLoggedIn() {
         return userRepository.findUsersNeverLoggedIn();
     }
+    
+    // Spring Security için gerekli metodlar
+    @Override
+    public void updateLastLogin(String username) {
+        Optional<User> userOpt = userRepository.findByUsername(username);
+        if (userOpt.isPresent()) {
+            User user = userOpt.get();
+            user.setLastLoginAt(LocalDateTime.now());
+            userRepository.save(user);
+        }
+    }
+    
+    @Override
+    public void incrementFailedLoginAttempts(String username) {
+        // Bu kısım için User entity'ye failedLoginAttempts field'ı eklenebilir
+        // Şimdilik basit bir implementasyon
+        System.out.println("Failed login attempt for user: " + username);
+    }
+    
+    @Override
+    public void resetFailedLoginAttempts(String username) {
+        // Bu kısım için User entity'ye failedLoginAttempts field'ı eklenebilir
+        // Şimdilik basit bir implementasyon
+        System.out.println("Reset failed login attempts for user: " + username);
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public boolean isAccountLocked(String username) {
+        // Bu kısım için User entity'ye accountLocked field'ı eklenebilir
+        // Şimdilik basit bir implementasyon
+        return false;
+    }
 }

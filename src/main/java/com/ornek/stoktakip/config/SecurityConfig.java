@@ -144,7 +144,7 @@ public class SecurityConfig {
             }
             
             // Rol bazlı yönlendirme
-            if (userOpt.isPresent() && userOpt.get().hasAnyRole(User.Role.SUPER_ADMIN, User.Role.ADMIN)) {
+            if (userOpt.isPresent() && userOpt.get().hasAnyRole(User.UserRole.SUPER_ADMIN, User.UserRole.ADMIN)) {
                 response.sendRedirect("/admin/users");
             } else {
                 response.sendRedirect("/");

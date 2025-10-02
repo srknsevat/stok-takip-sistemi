@@ -78,4 +78,13 @@ public interface UserService {
     List<User> getRecentlyLoggedInUsers(int days);
     
     List<User> getUsersNeverLoggedIn();
+    
+    // Spring Security için gerekli metodlar
+    void updateLastLogin(String username);
+    
+    void incrementFailedLoginAttempts(String username);
+    
+    void resetFailedLoginAttempts(String username);
+    
+    boolean isAccountLocked(String username);
 }
