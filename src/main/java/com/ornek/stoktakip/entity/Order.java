@@ -177,6 +177,10 @@ public class Order {
     public OrderStatus getOrderStatus() { return orderStatus; }
     public void setOrderStatus(OrderStatus orderStatus) { this.orderStatus = orderStatus; }
     
+    // Status için alias
+    public OrderStatus getStatus() { return orderStatus; }
+    public void setStatus(OrderStatus status) { this.orderStatus = status; }
+    
     public OrderType getOrderType() { return orderType; }
     public void setOrderType(OrderType orderType) { this.orderType = orderType; }
     

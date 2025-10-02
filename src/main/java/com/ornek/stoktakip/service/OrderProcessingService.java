@@ -1,50 +1,95 @@
 package com.ornek.stoktakip.service;
 
-import com.ornek.stoktakip.entity.MaterialCard;
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import com.ornek.stoktakip.entity.Order;
+import com.ornek.stoktakip.entity.OrderItem;
+import com.ornek.stoktakip.dto.OrderProcessingResult;
 import java.util.List;
 import java.util.Map;
 
 public interface OrderProcessingService {
     
     /**
-     * Sipariş işleme
+     * Siparişi işle ve stokları güncelle
      */
-    boolean processOrder(Long materialId, BigDecimal quantity, String orderType);
+    OrderProcessingResult processOrder(Order order);
     
     /**
-     * Sipariş iptal etme
+     * Siparişi iptal et ve stokları geri yükle
      */
-    boolean cancelOrder(Long materialId, BigDecimal quantity, String orderType);
+    OrderProcessingResult cancelOrder(Order order);
     
     /**
-     * Sipariş iade etme
+     * Siparişi onayla
      */
-    boolean returnOrder(Long materialId, BigDecimal quantity, String orderType);
+    OrderProcessingResult confirmOrder(Order order);
     
     /**
-     * Stok hareketi oluşturma
+     * Siparişi sevk et
      */
-    boolean createStockMovement(Long materialId, BigDecimal quantity, String movementType, String description);
+    OrderProcessingResult shipOrder(Order order);
     
     /**
-     * BOM patlatma ve stok düşürme
+     * Siparişi teslim et
      */
-    boolean explodeBOMAndDeductStock(Long materialId, BigDecimal quantity);
+    OrderProcessingResult deliverOrder(Order order);
     
     /**
-     * Stok kontrolü
+     * Siparişi iade et
      */
-    boolean checkStockAvailability(Long materialId, BigDecimal quantity);
+    OrderProcessingResult returnOrder(Order order);
     
     /**
-     * Sipariş geçmişi
+     * Stok kontrolü yap
      */
-    List<Map<String, Object>> getOrderHistory(Long materialId);
+    boolean checkStockAvailability(Order order);
     
     /**
-     * Stok hareket geçmişi
+     * Stok rezervasyonu yap
      */
-    List<Map<String, Object>> getStockMovementHistory(Long materialId);
+    boolean reserveStock(Order order);
+    
+    /**
+     * Stok rezervasyonunu iptal et
+     */
+    boolean releaseReservedStock(Order order);
+    
+    /**
+     * Sipariş durumunu güncelle
+     */
+    Order updateOrderStatus(Order order, Order.OrderStatus newStatus);
+    
+    /**
+     * Sipariş öğelerini işle
+     */
+    List<OrderItem> processOrderItems(Order order);
+    
+    /**
+     * BOM patlatma işlemi
+     */
+    Map<Long, Double> explodeBOMForOrder(Order order);
+    
+    /**
+     * Stok hareketi oluştur
+     */
+    void createStockMovement(Long materialId, Double quantity, String movementType, String description);
+    
+    /**
+     * Platform stoklarını güncelle
+     */
+    boolean updatePlatformStocks(Order order);
+    
+    /**
+     * Sipariş işleme geçmişi
+     */
+    List<OrderProcessingResult> getOrderProcessingHistory(Long orderId);
+    
+    /**
+     * Bekleyen siparişleri işle
+     */
+    List<OrderProcessingResult> processPendingOrders();
+    
+    /**
+     * Sipariş işleme istatistikleri
+     */
+    Map<String, Object> getOrderProcessingStats();
 }

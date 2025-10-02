@@ -73,4 +73,10 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     
     @Query("SELECT COUNT(o) FROM Order o WHERE o.product.id = :productId")
     Long countByProductId(@Param("productId") Long productId);
+    
+    // Status için alias metodlar
+    List<Order> findByStatus(Order.OrderStatus status);
+    
+    @Query("SELECT COUNT(o) FROM Order o WHERE o.orderStatus = :status")
+    Long countByStatus(@Param("status") Order.OrderStatus status);
 }
