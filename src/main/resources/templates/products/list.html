@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="#{product.list.title}">Ürün Listesi</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        /* Modern input focus efekti */
+        .search-container .form-control:focus {
+            border-color: #80bdff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.15);
+            transition: all 0.2s ease-in-out;
+        }
+
+        /* Input group hover efekti */
+        .search-container .input-group:hover .form-control {
+            border-color: #80bdff;
+        }
+
+        /* Temizleme butonu stili - sadece temel stiller */
+        .search-container .btn-outline-secondary {
+            border-color: #ced4da;
+        }
+    </style>
+</head>
+<body>
+    <div th:replace="~{fragments/topbar :: topbar}"></div>
+    <div class="container mt-4">
+        <!-- Başlık ve Arama Kutusu -->
+        <div class="mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <!-- Kategori adı varsa onu, yoksa varsayılan başlığı göster -->
+                <h2>
+                    <span th:if="${categoryName}" th:text="${categoryName}">Kategori Ürünleri</span>
+                    <span th:unless="${categoryName}" th:text="#{product.list.header}">Ürün Listesi</span>
+                </h2>
+                <a href="/products/new" class="btn btn-primary" th:text="#{product.new.button}">Yeni Ürün</a>
+            </div>
+            
+            <!-- Arama ve Filtreleme Satırı -->
+            <div class="row mb-3">
+                <!-- Arama Kutusu -->
+                <div class="col-md-4">
+                    <div class="input-group search-container">
+                        <input type="text" 
+                               id="searchInput" 
+                               class="form-control" 
+                               th:placeholder="#{product.search.placeholder}">
+                        <button class="btn btn-outline-secondary" type="button" id="clearSearch">
+                            <i class="bi bi-x-circle"></i>
+                        </button>
+                    </div>
+                </div>
+                <!-- Sıralama Filtresi -->
+                <div class="col-md-3">
+                    <select class="form-select" id="sortSelect">
+                        <option value="" selected th:text="#{sort.select}">Sıralama seçin</option>
+                        <option value="stock-desc" th:text="#{sort.stock.high}">Stok Miktarı (Önce en yüksek)</option>
+                        <option value="stock-asc" th:text="#{sort.stock.low}">Stok Miktarı (Önce en düşük)</option>
+                        <option value="price-desc" th:text="#{sort.price.high}">Fiyat (Önce en yüksek)</option>
+                        <option value="price-asc" th:text="#{sort.price.low}">Fiyat (Önce en düşük)</option>
+                        <option value="date-asc" th:text="#{sort.date.old}">Tarih (Önce en eski)</option>
+                        <option value="date-desc" th:text="#{sort.date.new}">Tarih (Önce en yeni)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Başarı/Hata Mesajları -->
+        <div th:if="${message}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${message}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <!-- Ürün Tablosu -->
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th th:text="#{product.code}">Ürün Kodu</th>
+                        <th th:text="#{product.name}">Ürün Adı</th>
+                        <th th:text="#{product.price}">Fiyat</th>
+                        <th th:text="#{product.stock}">Stok</th>
+                        <th th:text="#{product.date}">Tarih</th>
+                        <th th:text="#{product.actions}">İşlemler</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="product : ${products}">
+                        <td th:text="${product.code}">ABC123</td>
+                        <td th:text="${product.name}">Laptop</td>
+                        <td th:text="${#numbers.formatDecimal(product.price, 0, 'POINT', 2, 'COMMA')} + ' ₺'">15000.00 ₺</td>
+                        <td th:text="${product.stockQuantity}">10</td>
+                        <td th:text="${#temporals.format(product.creationDate, 'dd.MM.yyyy')}">01.01.2024</td>
+                        <td>
+                            <div class="d-flex gap-2">
+                                <a th:href="@{/products/detail/{id}(id=${product.id})}" 
+                                   class="btn btn-sm rounded-pill px-3" 
+                                   style="background-color: #17a2b8; color: white;"
+                                   th:text="#{button.detail}">Detay</a>
+                                <a th:href="@{/products/edit/{id}(id=${product.id})}" 
+                                   class="btn btn-sm rounded-pill px-3" 
+                                   style="background-color: #fd7e14; color: white;"
+                                   th:text="#{button.edit}">Düzenle</a>
+                                <a th:href="@{/products/stock/add/{id}(id=${product.id})}" 
+                                   class="btn btn-sm rounded-pill px-3" 
+                                   style="background-color: #28a745; color: white;"
+                                   th:text="#{button.stock.add}">Stok Girişi</a>
+                                <a th:href="@{/products/stock/remove/{id}(id=${product.id})}" 
+                                   class="btn btn-sm rounded-pill px-3" 
+                                   style="background-color: #ffc107; color: black;"
+                                   th:text="#{button.stock.remove}">Stok Çıkışı</a>
+                                <form th:action="@{/products/delete/{id}(id=${product.id})}" 
+                                      method="post" 
+                                      style="display: inline;">
+                                    <button type="submit" 
+                                            class="btn btn-sm rounded-pill px-3" 
+                                            style="background-color: #dc3545; color: white;"
+                                            th:text="#{button.delete}"
+                                            onclick="return confirm(#{confirm.delete})">Sil</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(products)}">
+                        <td colspan="5" class="text-center" th:text="#{product.list.empty}">Ürün bulunamadı</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('searchInput');
+        const clearButton = document.getElementById('clearSearch');
+        const sortSelect = document.getElementById('sortSelect');
+        const tableBody = document.querySelector('table tbody');
+        
+        function filterTable(searchText) {
+            searchText = searchText.toLowerCase();
+            
+            const rows = Array.from(tableBody.querySelectorAll('tr:not([data-empty])'));
+            
+            rows.forEach(row => {
+                const code = row.querySelector('td:nth-child(1)').textContent.toLowerCase();
+                const name = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+                
+                if (code.includes(searchText) || name.includes(searchText)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+        
+        searchInput.addEventListener('input', function() {
+            filterTable(this.value);
+        });
+        
+        clearButton.addEventListener('click', function() {
+            searchInput.value = '';
+            filterTable('');
+        });
+
+        // Sıralama fonksiyonu
+        function sortTable(sortBy) {
+            const rows = Array.from(tableBody.querySelectorAll('tr:not([data-empty])'));
+            
+            rows.sort((a, b) => {
+                let aValue, bValue;
+                
+                switch(sortBy) {
+                    case 'stock-desc':
+                    case 'stock-asc':
+                        aValue = parseInt(a.querySelector('td:nth-child(4)').textContent);
+                        bValue = parseInt(b.querySelector('td:nth-child(4)').textContent);
+                        break;
+                        
+                    case 'price-desc':
+                    case 'price-asc':
+                        aValue = parseFloat(a.querySelector('td:nth-child(3)').textContent.replace('₺', '').replace('.', '').replace(',', '.').trim());
+                        bValue = parseFloat(b.querySelector('td:nth-child(3)').textContent.replace('₺', '').replace('.', '').replace(',', '.').trim());
+                        break;
+                        
+                    case 'date-desc':
+                    case 'date-asc':
+                        aValue = new Date(a.querySelector('td:nth-child(5)').textContent.split('.').reverse().join('-'));
+                        bValue = new Date(b.querySelector('td:nth-child(5)').textContent.split('.').reverse().join('-'));
+                        break;
+                }
+                
+                if (sortBy.endsWith('-asc')) {
+                    return aValue - bValue;
+                } else {
+                    return bValue - aValue;
+                }
+            });
+            
+            // Sıralanmış satırları tabloya yerleştir
+            rows.forEach(row => tableBody.appendChild(row));
+        }
+        
+        // Sıralama değiştiğinde
+        sortSelect.addEventListener('change', function() {
+            if (this.value) {
+                sortTable(this.value);
+            }
+        });
+    });
+    </script>
+</body>
+</html> 

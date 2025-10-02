@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${platform.id != null} ? 'Platform Düzenle' : 'Yeni Platform'">Platform Formu</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+</head>
+<body>
+    <div th:replace="~{fragments/topbar :: topbar}"></div>
+    
+    <div class="container mt-4">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <!-- Başlık -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>
+                        <i class="bi bi-gear"></i>
+                        <span th:text="${platform.id != null} ? 'Platform Düzenle' : 'Yeni Platform Ekle'">Platform Formu</span>
+                    </h2>
+                    <a href="/platform-config" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Geri
+                    </a>
+                </div>
+
+                <!-- Form -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Platform Bilgileri</h5>
+                    </div>
+                    <div class="card-body">
+                        <form th:action="@{/platform-config/save}" th:object="${platform}" method="post">
+                            <input type="hidden" th:field="*{id}">
+                            
+                            <div class="row">
+                                <!-- Platform Adı -->
+                                <div class="col-md-6 mb-3">
+                                    <label for="name" class="form-label">Platform Adı <span class="text-danger">*</span></label>
+                                    <input type="text" 
+                                           class="form-control" 
+                                           id="name" 
+                                           th:field="*{name}" 
+                                           placeholder="Örn: eBay, Shopify, Amazon"
+                                           required>
+                                </div>
+                                
+                                <!-- Platform Kodu -->
+                                <div class="col-md-6 mb-3">
+                                    <label for="code" class="form-label">Platform Kodu <span class="text-danger">*</span></label>
+                                    <input type="text" 
+                                           class="form-control" 
+                                           id="code" 
+                                           th:field="*{code}" 
+                                           placeholder="Örn: EBAY, SHOPIFY, AMAZON"
+                                           required>
+                                </div>
+                            </div>
+                            
+                            <!-- Açıklama -->
+                            <div class="mb-3">
+                                <label for="description" class="form-label">Açıklama</label>
+                                <textarea class="form-control" 
+                                          id="description" 
+                                          th:field="*{description}" 
+                                          rows="3" 
+                                          placeholder="Platform hakkında açıklama"></textarea>
+                            </div>
+                            
+                            <div class="row">
+                                <!-- API Endpoint -->
+                                <div class="col-md-6 mb-3">
+                                    <label for="apiEndpoint" class="form-label">API Endpoint</label>
+                                    <input type="url" 
+                                           class="form-control" 
+                                           id="apiEndpoint" 
+                                           th:field="*{apiEndpoint}" 
+                                           placeholder="https://api.example.com">
+                                </div>
+                                
+                                <!-- Webhook URL -->
+                                <div class="col-md-6 mb-3">
+                                    <label for="webhookUrl" class="form-label">Webhook URL</label>
+                                    <input type="url" 
+                                           class="form-control" 
+                                           id="webhookUrl" 
+                                           th:field="*{webhookUrl}" 
+                                           placeholder="https://your-domain.com/webhooks/platform">
+                                </div>
+                            </div>
+                            
+                            <!-- Durum Ayarları -->
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" 
+                                               type="checkbox" 
+                                               id="isActive" 
+                                               th:field="*{isActive}">
+                                        <label class="form-check-label" for="isActive">
+                                            Platform Aktif
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" 
+                                               type="checkbox" 
+                                               id="syncEnabled" 
+                                               th:field="*{syncEnabled}">
+                                        <label class="form-check-label" for="syncEnabled">
+                                            Senkronizasyon Aktif
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Butonlar -->
+                            <div class="d-flex justify-content-between">
+                                <a href="/platform-config" class="btn btn-secondary">
+                                    <i class="bi bi-x-circle"></i> İptal
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-check-circle"></i> Kaydet
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- Platform Türleri Rehberi -->
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h6 class="card-title mb-0">
+                            <i class="bi bi-info-circle"></i> Platform Türleri ve API Endpoint'leri
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>eBay</h6>
+                                <ul class="list-unstyled small">
+                                    <li><strong>Kod:</strong> EBAY</li>
+                                    <li><strong>API:</strong> https://api.ebay.com</li>
+                                    <li><strong>Dokümantasyon:</strong> eBay Developer Portal</li>
+                                </ul>
+                                
+                                <h6>Shopify</h6>
+                                <ul class="list-unstyled small">
+                                    <li><strong>Kod:</strong> SHOPIFY</li>
+                                    <li><strong>API:</strong> https://your-shop.myshopify.com</li>
+                                    <li><strong>Dokümantasyon:</strong> Shopify Admin API</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Amazon</h6>
+                                <ul class="list-unstyled small">
+                                    <li><strong>Kod:</strong> AMAZON</li>
+                                    <li><strong>API:</strong> https://sellingpartnerapi-eu.amazon.com</li>
+                                    <li><strong>Dokümantasyon:</strong> Amazon SP-API</li>
+                                </ul>
+                                
+                                <h6>Trendyol</h6>
+                                <ul class="list-unstyled small">
+                                    <li><strong>Kod:</strong> TRENDYOL</li>
+                                    <li><strong>API:</strong> https://api.trendyol.com</li>
+                                    <li><strong>Dokümantasyon:</strong> Trendyol Partner API</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Platform kodunu otomatik büyük harfe çevir
+        document.getElementById('code').addEventListener('input', function(e) {
+            e.target.value = e.target.value.toUpperCase();
+        });
+        
+        // Platform adına göre otomatik kod önerisi
+        document.getElementById('name').addEventListener('input', function(e) {
+            const name = e.target.value.toLowerCase();
+            const codeField = document.getElementById('code');
+            
+            if (codeField.value === '') {
+                const codeMap = {
+                    'ebay': 'EBAY',
+                    'shopify': 'SHOPIFY',
+                    'amazon': 'AMAZON',
+                    'trendyol': 'TRENDYOL',
+                    'hepsiburada': 'HEPSIBURADA',
+                    'n11': 'N11',
+                    'gittigidiyor': 'GITTIGIDIYOR'
+                };
+                
+                for (const [key, value] of Object.entries(codeMap)) {
+                    if (name.includes(key)) {
+                        codeField.value = value;
+                        break;
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
+

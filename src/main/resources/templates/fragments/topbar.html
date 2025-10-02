@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons - CDN bağlantısı -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</head>
+<body>
+    <nav th:fragment="topbar" class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <!-- Logo ve Şirket Adı -->
+            <a class="navbar-brand d-flex align-items-center" href="/">
+                <img src="/images/logo.png" 
+                     alt="HaYi Logo" 
+                     style="height: 50px; width: auto; object-fit: contain;"
+                     class="me-1">
+                <span class="fw-bold fs-4" style="color: #c8e6e6;">HaYi</span>
+            </a>
+            
+            <!-- Navbar'ın geri kalanı için biraz daha boşluk bırakalım -->
+            <div class="ms-3 flex-grow-1">
+                <!-- Mobil Menü Butonu -->
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                
+                <!-- Menü İçeriği -->
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav me-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" th:href="@{/}" th:text="#{nav.home}">Anasayfa</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" th:href="@{/products}" th:text="#{nav.products}">Ürün Listesi</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" th:href="@{/stock-movements}" th:text="#{nav.stock}">Stok Hareketleri</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" th:href="@{/platform-config}">
+                                <i class="bi bi-gear"></i> Platform Ayarları
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" th:href="@{/dashboard}">
+                                <i class="bi bi-graph-up"></i> Dashboard
+                            </a>
+                        </li>
+                    </ul>
+                    
+                    <!-- Kullanıcı menüsü -->
+                    <div class="navbar-nav" th:if="${session.user != null}">
+                        <div class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-person-circle"></i>
+                                <span th:text="${session.user.firstName}">Kullanıcı</span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><h6 class="dropdown-header" th:text="${session.user.getFullName()}">Kullanıcı Adı</h6></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="/profile">
+                                    <i class="bi bi-person"></i> Profil
+                                </a></li>
+                                <li><a class="dropdown-item" href="/settings">
+                                    <i class="bi bi-gear"></i> Ayarlar
+                                </a></li>
+                                <li th:if="${session.user.hasAnyRole(T(com.ornek.stoktakip.entity.User.Role).SUPER_ADMIN, T(com.ornek.stoktakip.entity.User.Role).ADMIN)}">
+                                    <a class="dropdown-item" href="/admin/users">
+                                        <i class="bi bi-people"></i> Kullanıcı Yönetimi
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="/auth/logout">
+                                    <i class="bi bi-box-arrow-right"></i> Çıkış
+                                </a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <!-- Giriş yapmamış kullanıcılar için -->
+                    <div class="navbar-nav" th:if="${session.user == null}">
+                        <a class="nav-link" href="/auth/login">
+                            <i class="bi bi-box-arrow-in-right"></i> Giriş
+                        </a>
+                    </div>
+                    
+                    <!-- Dil seçimi -->
+                    <div class="navbar-nav ms-2">
+                        <a class="nav-link" th:href="@{?lang=tr}">TR</a>
+                        <a class="nav-link" th:href="@{?lang=en}">EN</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <style>
+        /* Logo için özel stil */
+        .navbar-brand img {
+            transition: transform 0.2s ease-in-out;
+        }
+        
+        /* Hover efekti */
+        .navbar-brand:hover img {
+            transform: scale(1.05);
+        }
+        
+        /* Navbar yüksekliğini ayarla */
+        .navbar {
+            padding-top: 0.5rem;
+            padding-bottom: 0.5rem;
+        }
+
+        /* HaYi yazısı için stil */
+        .navbar-brand span {
+            margin-left: -2px;
+            letter-spacing: 1px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        }
+
+        /* Temizleme butonu stili */
+        .search-container .btn-outline-secondary {
+            border-color: #ced4da;
+            padding: 0.375rem 0.75rem;  /* Buton padding'ini ayarla */
+        }
+
+        .search-container .btn-outline-secondary i {
+            font-size: 1rem;  /* İkon boyutunu ayarla */
+            line-height: 1;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-container .btn-outline-secondary:hover {
+            background-color: #f8f9fa;
+            border-color: #80bdff;
+        }
+
+        .search-container .btn-outline-secondary:hover i {
+            color: #0d6efd;  /* Hover durumunda ikon rengini değiştir */
+        }
+    </style>
+</body>
+</html> 

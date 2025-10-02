@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BOM Patlatma - Stok Takip Sistemi</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <style>
+        .bom-level-1 { margin-left: 0px; }
+        .bom-level-2 { margin-left: 20px; }
+        .bom-level-3 { margin-left: 40px; }
+        .bom-level-4 { margin-left: 60px; }
+        .bom-level-5 { margin-left: 80px; }
+        
+        .bom-item {
+            border-left: 3px solid #007bff;
+            padding-left: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .bom-item.has-shortage {
+            border-left-color: #dc3545;
+            background-color: #f8d7da;
+        }
+        
+        .bom-item.stock-ok {
+            border-left-color: #28a745;
+            background-color: #d4edda;
+        }
+        
+        .bom-tree {
+            font-family: 'Courier New', monospace;
+        }
+        
+        .bom-path {
+            font-size: 0.9em;
+            color: #6c757d;
+        }
+        
+        .quantity-badge {
+            font-size: 0.8em;
+        }
+        
+        .cost-breakdown {
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            padding: 15px;
+        }
+        
+        .stock-status {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        
+        .stock-ok { background-color: #28a745; }
+        .stock-low { background-color: #ffc107; }
+        .stock-out { background-color: #dc3545; }
+        
+        .explosion-summary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .summary-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+        
+        .summary-card h4 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+        
+        .summary-card p {
+            margin: 5px 0 0 0;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div th:replace="~{fragments/topbar :: topbar}"></div>
+    
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <div class="col-12">
+                <!-- Başlık -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>
+                        <i class="bi bi-diagram-3"></i>
+                        BOM Patlatma ve Stok Düşürme
+                    </h2>
+                    <div>
+                        <button class="btn btn-primary" onclick="explodeBOM()">
+                            <i class="bi bi-lightning"></i> BOM'u Patlat
+                        </button>
+                        <button class="btn btn-success" onclick="updateStock()">
+                            <i class="bi bi-check-circle"></i> Stoktan Düş
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- BOM Seçimi -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-gear"></i> BOM Seçimi
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label for="materialSelect" class="form-label">Malzeme Seçin</label>
+                                <select class="form-select" id="materialSelect" onchange="loadMaterialInfo()">
+                                    <option value="">Malzeme seçin...</option>
+                                    <option value="M007">M007 - Elektrikli Motor</option>
+                                    <option value="M008">M008 - Kontrol Paneli</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="quantityInput" class="form-label">Miktar</label>
+                                <input type="number" class="form-control" id="quantityInput" value="1" min="1" step="0.1">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="referenceInput" class="form-label">Referans No</label>
+                                <input type="text" class="form-control" id="referenceInput" placeholder="SIP-2024-001">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Malzeme Bilgileri -->
+                <div class="card mb-4" id="materialInfo" style="display: none;">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-info-circle"></i> Malzeme Bilgileri
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <strong>Malzeme Kodu:</strong>
+                                <span id="materialCode">-</span>
+                            </div>
+                            <div class="col-md-3">
+                                <strong>Malzeme Adı:</strong>
+                                <span id="materialName">-</span>
+                            </div>
+                            <div class="col-md-3">
+                                <strong>Mevcut Stok:</strong>
+                                <span id="currentStock">-</span>
+                            </div>
+                            <div class="col-md-3">
+                                <strong>Birim:</strong>
+                                <span id="unitOfMeasure">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- BOM Patlatma Sonuçları -->
+                <div class="card mb-4" id="explosionResults" style="display: none;">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-diagram-3"></i> BOM Patlatma Sonuçları
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Özet Bilgiler -->
+                        <div class="explosion-summary">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="summary-card">
+                                        <h4 id="totalMaterials">0</h4>
+                                        <p>Toplam Malzeme</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="summary-card">
+                                        <h4 id="totalCost">0 TL</h4>
+                                        <p>Toplam Maliyet</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="summary-card">
+                                        <h4 id="stockStatus">-</h4>
+                                        <p>Stok Durumu</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="summary-card">
+                                        <h4 id="shortageCount">0</h4>
+                                        <p>Eksik Stok</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- BOM Ağacı -->
+                        <div class="bom-tree" id="bomTree">
+                            <!-- BOM ağacı burada oluşturulacak -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Maliyet Dağılımı -->
+                <div class="card mb-4" id="costBreakdown" style="display: none;">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-calculator"></i> Maliyet Dağılımı
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="cost-breakdown">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>Seviye Bazında Maliyet</h6>
+                                    <div id="costByLevel">
+                                        <!-- Seviye bazında maliyetler burada gösterilecek -->
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>Malzeme Bazında Maliyet</h6>
+                                    <div id="costByMaterial">
+                                        <!-- Malzeme bazında maliyetler burada gösterilecek -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Stok Hareketleri -->
+                <div class="card mb-4" id="stockMovements" style="display: none;">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-arrow-left-right"></i> Oluşturulacak Stok Hareketleri
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Malzeme Kodu</th>
+                                        <th>Malzeme Adı</th>
+                                        <th>Miktar</th>
+                                        <th>Birim</th>
+                                        <th>Maliyet</th>
+                                        <th>Toplam</th>
+                                        <th>Durum</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="stockMovementsTable">
+                                    <!-- Stok hareketleri burada gösterilecek -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Örnek malzeme verileri
+        const materials = {
+            'M007': {
+                code: 'M007',
+                name: 'Elektrikli Motor',
+                currentStock: 10,
+                unitOfMeasure: 'ADET',
+                bom: [
+                    { code: 'M005', name: 'Gövde Parçası', quantity: 1, level: 1, stock: 25, unit: 'ADET', cost: 80 },
+                    { code: 'M006', name: 'Montaj Grubu', quantity: 1, level: 1, stock: 15, unit: 'ADET', cost: 200 },
+                    { code: 'M009', name: 'Vida M6x20', quantity: 8, level: 1, stock: 1000, unit: 'ADET', cost: 0.5 },
+                    { code: 'M010', name: 'Kablo Bağlantı Ucu', quantity: 4, level: 1, stock: 500, unit: 'ADET', cost: 0.25 },
+                    // Gövde Parçası BOM'u
+                    { code: 'M001', name: 'Çelik Levha', quantity: 0.5, level: 2, stock: 100, unit: 'M2', cost: 50 },
+                    { code: 'M009', name: 'Vida M6x20', quantity: 4, level: 2, stock: 1000, unit: 'ADET', cost: 0.5 },
+                    // Montaj Grubu BOM'u
+                    { code: 'M003', name: 'Elektronik Kart', quantity: 1, level: 2, stock: 50, unit: 'ADET', cost: 150 },
+                    { code: 'M004', name: 'Kablo', quantity: 1, level: 2, stock: 1000, unit: 'M', cost: 5 },
+                    { code: 'M010', name: 'Kablo Bağlantı Ucu', quantity: 2, level: 2, stock: 500, unit: 'ADET', cost: 0.25 }
+                ]
+            }
+        };
+        
+        function loadMaterialInfo() {
+            const materialCode = document.getElementById('materialSelect').value;
+            if (materialCode && materials[materialCode]) {
+                const material = materials[materialCode];
+                document.getElementById('materialCode').textContent = material.code;
+                document.getElementById('materialName').textContent = material.name;
+                document.getElementById('currentStock').textContent = material.currentStock;
+                document.getElementById('unitOfMeasure').textContent = material.unitOfMeasure;
+                document.getElementById('materialInfo').style.display = 'block';
+            } else {
+                document.getElementById('materialInfo').style.display = 'none';
+            }
+        }
+        
+        function explodeBOM() {
+            const materialCode = document.getElementById('materialSelect').value;
+            const quantity = parseFloat(document.getElementById('quantityInput').value);
+            
+            if (!materialCode || !quantity) {
+                alert('Lütfen malzeme ve miktar seçin!');
+                return;
+            }
+            
+            const material = materials[materialCode];
+            if (!material) {
+                alert('Malzeme bulunamadı!');
+                return;
+            }
+            
+            // BOM'u patlat
+            const explosionResults = [];
+            const materialMap = new Map();
+            
+            material.bom.forEach(item => {
+                const requiredQuantity = item.quantity * quantity;
+                const availableStock = item.stock;
+                const shortage = Math.max(0, requiredQuantity - availableStock);
+                
+                const result = {
+                    ...item,
+                    requiredQuantity: requiredQuantity,
+                    availableStock: availableStock,
+                    shortage: shortage,
+                    totalCost: requiredQuantity * item.cost,
+                    hasShortage: shortage > 0
+                };
+                
+                explosionResults.push(result);
+                
+                // Aynı malzeme için miktarları topla
+                if (materialMap.has(item.code)) {
+                    const existing = materialMap.get(item.code);
+                    existing.requiredQuantity += requiredQuantity;
+                    existing.totalCost += result.totalCost;
+                    existing.shortage = Math.max(0, existing.requiredQuantity - existing.availableStock);
+                    existing.hasShortage = existing.shortage > 0;
+                } else {
+                    materialMap.set(item.code, result);
+                }
+            });
+            
+            // Sonuçları göster
+            displayExplosionResults(Array.from(materialMap.values()), quantity);
+        }
+        
+        function displayExplosionResults(results, quantity) {
+            // Özet bilgileri güncelle
+            const totalMaterials = results.length;
+            const totalCost = results.reduce((sum, item) => sum + item.totalCost, 0);
+            const shortageCount = results.filter(item => item.hasShortage).length;
+            const stockStatus = shortageCount === 0 ? 'Yeterli' : 'Yetersiz';
+            
+            document.getElementById('totalMaterials').textContent = totalMaterials;
+            document.getElementById('totalCost').textContent = totalCost.toFixed(2) + ' TL';
+            document.getElementById('stockStatus').textContent = stockStatus;
+            document.getElementById('shortageCount').textContent = shortageCount;
+            
+            // BOM ağacını oluştur
+            const bomTree = document.getElementById('bomTree');
+            bomTree.innerHTML = '';
+            
+            results.forEach(item => {
+                const bomItem = document.createElement('div');
+                bomItem.className = `bom-item bom-level-${item.level} ${item.hasShortage ? 'has-shortage' : 'stock-ok'}`;
+                
+                const stockStatusIcon = item.hasShortage ? 'stock-out' : 'stock-ok';
+                const stockStatusText = item.hasShortage ? 'Eksik' : 'Yeterli';
+                
+                bomItem.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="stock-status ${stockStatusIcon}"></span>
+                            <strong>${item.code}</strong> - ${item.name}
+                            <span class="badge bg-primary quantity-badge">${item.requiredQuantity} ${item.unit}</span>
+                            <span class="badge bg-info quantity-badge">${item.cost.toFixed(2)} TL</span>
+                            <span class="badge bg-success quantity-badge">${item.totalCost.toFixed(2)} TL</span>
+                        </div>
+                        <div>
+                            <span class="badge ${item.hasShortage ? 'bg-danger' : 'bg-success'}">${stockStatusText}</span>
+                            ${item.hasShortage ? `<span class="text-danger">Eksik: ${item.shortage}</span>` : ''}
+                        </div>
+                    </div>
+                `;
+                
+                bomTree.appendChild(bomItem);
+            });
+            
+            // Stok hareketleri tablosunu oluştur
+            const stockMovementsTable = document.getElementById('stockMovementsTable');
+            stockMovementsTable.innerHTML = '';
+            
+            results.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item.code}</td>
+                    <td>${item.name}</td>
+                    <td>${item.requiredQuantity}</td>
+                    <td>${item.unit}</td>
+                    <td>${item.cost.toFixed(2)} TL</td>
+                    <td>${item.totalCost.toFixed(2)} TL</td>
+                    <td>
+                        <span class="badge ${item.hasShortage ? 'bg-danger' : 'bg-success'}">
+                            ${item.hasShortage ? 'Eksik Stok' : 'Stok Mevcut'}
+                        </span>
+                    </td>
+                `;
+                stockMovementsTable.appendChild(row);
+            });
+            
+            // Sonuçları göster
+            document.getElementById('explosionResults').style.display = 'block';
+            document.getElementById('costBreakdown').style.display = 'block';
+            document.getElementById('stockMovements').style.display = 'block';
+        }
+        
+        function updateStock() {
+            const materialCode = document.getElementById('materialSelect').value;
+            const quantity = parseFloat(document.getElementById('quantityInput').value);
+            const referenceNumber = document.getElementById('referenceInput').value;
+            
+            if (!materialCode || !quantity || !referenceNumber) {
+                alert('Lütfen tüm alanları doldurun!');
+                return;
+            }
+            
+            // Stok güncelleme işlemi
+            if (confirm('Stoktan düşmek istediğinizden emin misiniz?')) {
+                // Burada gerçek stok güncelleme işlemi yapılacak
+                alert('Stok başarıyla güncellendi!');
+            }
+        }
+        
+        // Sayfa yüklendiğinde
+        document.addEventListener('DOMContentLoaded', function() {
+            // Varsayılan değerleri ayarla
+            document.getElementById('referenceInput').value = 'SIP-' + new Date().getFullYear() + '-' + String(Math.floor(Math.random() * 1000)).padStart(3, '0');
+        });
+    </script>
+</body>
+</html>

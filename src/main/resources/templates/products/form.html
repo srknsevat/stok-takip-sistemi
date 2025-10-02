@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="#{product.form.title.new}">Yeni Ürün</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+</head>
+<body>
+    <div th:replace="~{fragments/topbar :: topbar}"></div>
+    <div class="container mt-4">
+        <h2 th:if="${product.id == null}" th:text="#{product.form.title.new}">Yeni Ürün</h2>
+        <h2 th:unless="${product.id == null}" th:text="#{product.form.title.edit}">Ürün Düzenle</h2>
+
+        <form th:action="@{/products/save}" th:object="${product}" method="post" class="mt-4">
+            <!-- Genel hata mesajları -->
+            <div th:if="${#fields.hasAnyErrors()}" class="alert alert-danger">
+                <ul>
+                    <li th:each="err : ${#fields.allErrors()}" th:text="${err}">Hata mesajı</li>
+                </ul>
+            </div>
+            
+            <!-- Gizli ID alanı -->
+            <input type="hidden" th:field="*{id}" />
+            <input type="hidden" th:field="*{creationDate}" />
+            
+            <!-- Ürün Kodu -->
+            <div class="mb-3">
+                <label for="code" class="form-label" th:text="#{product.code}">Ürün Kodu</label>
+                <input type="text" 
+                       class="form-control" 
+                       th:field="*{code}"
+                       th:placeholder="#{product.form.code.placeholder}"
+                       th:classappend="${#fields.hasErrors('code')} ? 'is-invalid'">
+                <div class="invalid-feedback" th:if="${#fields.hasErrors('code')}" th:errors="*{code}">
+                    Ürün kodu hatası
+                </div>
+            </div>
+
+            <!-- Ürün Adı -->
+            <div class="mb-3">
+                <label for="name" class="form-label" th:text="#{product.name}">Ürün Adı</label>
+                <input type="text" 
+                       class="form-control" 
+                       th:field="*{name}"
+                       th:placeholder="#{product.form.name.placeholder}"
+                       th:classappend="${#fields.hasErrors('name')} ? 'is-invalid'">
+                <div class="invalid-feedback" th:if="${#fields.hasErrors('name')}" th:errors="*{name}">
+                    Ürün adı hatası
+                </div>
+            </div>
+
+            <!-- Açıklama -->
+            <div class="mb-3">
+                <label for="description" class="form-label" th:text="#{product.description}">Açıklama</label>
+                <textarea class="form-control" 
+                          th:field="*{description}" 
+                          rows="3"
+                          th:placeholder="#{product.form.description.placeholder}"></textarea>
+            </div>
+
+            <!-- Fiyat -->
+            <div class="mb-3">
+                <label for="price" class="form-label" th:text="#{product.price}">Fiyat</label>
+                <input type="number" 
+                       class="form-control" 
+                       th:field="*{price}"
+                       step="0.01"
+                       th:placeholder="#{product.form.price.placeholder}"
+                       th:classappend="${#fields.hasErrors('price')} ? 'is-invalid'">
+                <div class="invalid-feedback" th:if="${#fields.hasErrors('price')}" th:errors="*{price}">
+                    Fiyat hatası
+                </div>
+            </div>
+
+            <!-- Stok Miktarı -->
+            <div class="mb-3">
+                <label for="stockQuantity" class="form-label" th:text="#{product.stock}">Stok Miktarı</label>
+                <input type="number" 
+                       class="form-control" 
+                       th:field="*{stockQuantity}"
+                       th:placeholder="#{product.form.stock.placeholder}"
+                       th:classappend="${#fields.hasErrors('stockQuantity')} ? 'is-invalid'">
+                <div class="invalid-feedback" th:if="${#fields.hasErrors('stockQuantity')}" th:errors="*{stockQuantity}">
+                    Stok miktarı hatası
+                </div>
+            </div>
+
+            <!-- Kategoriler -->
+            <div class="mb-3">
+                <label for="categories" class="form-label" th:text="#{product.categories}">Kategoriler</label>
+                <select class="form-select" id="categories" name="categories" required>
+                    <option value="" selected disabled th:text="#{form.select.category}">Kategori seçin</option>
+                    <option th:each="category : ${categories}" 
+                            th:value="${category.name}" 
+                            th:text="${category.name}"
+                            th:selected="${product.categories != null and product.categories.contains(category.name)}">
+                        Kategori Adı
+                    </option>
+                </select>
+            </div>
+
+            <!-- Butonlar -->
+            <div class="mb-3">
+                <button type="submit" class="btn btn-primary" th:text="#{product.form.submit}">Kaydet</button>
+                <a th:href="@{/products}" class="btn btn-secondary" th:text="#{product.form.cancel}">İptal</a>
+            </div>
+        </form>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html> 

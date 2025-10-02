@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Platform Konfigürasyonu</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <style>
+        .platform-card {
+            transition: transform 0.2s;
+            min-height: 200px;
+        }
+        .platform-card:hover {
+            transform: translateY(-5px);
+        }
+        .status-badge {
+            font-size: 0.8rem;
+        }
+        .api-status {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 5px;
+        }
+        .api-status.connected {
+            background-color: #28a745;
+        }
+        .api-status.disconnected {
+            background-color: #dc3545;
+        }
+        .api-status.unknown {
+            background-color: #ffc107;
+        }
+    </style>
+</head>
+<body>
+    <div th:replace="~{fragments/topbar :: topbar}"></div>
+    
+    <div class="container mt-4">
+        <!-- Başlık ve Yeni Platform Butonu -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="bi bi-gear"></i> Platform Konfigürasyonu</h2>
+            <a href="/platform-config/new" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Yeni Platform Ekle
+            </a>
+        </div>
+
+        <!-- Başarı/Hata Mesajları -->
+        <div th:if="${message}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${message}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <!-- Platform Kartları -->
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            <div class="col" th:each="platform : ${platforms}">
+                <div class="card h-100 platform-card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0" th:text="${platform.name}">Platform Adı</h5>
+                        <span class="badge" 
+                              th:classappend="${platform.isActive} ? 'bg-success' : 'bg-secondary'"
+                              th:text="${platform.isActive} ? 'Aktif' : 'Pasif'">Durum</span>
+                    </div>
+                    
+                    <div class="card-body">
+                        <!-- Platform Bilgileri -->
+                        <div class="mb-3">
+                            <small class="text-muted">Platform Kodu:</small>
+                            <span class="fw-bold" th:text="${platform.code}">CODE</span>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <small class="text-muted">Açıklama:</small>
+                            <p class="mb-0" th:text="${platform.description}">Platform açıklaması</p>
+                        </div>
+                        
+                        <!-- API Durumu -->
+                        <div class="mb-3">
+                            <small class="text-muted">API Durumu:</small>
+                            <div class="mt-1">
+                                <span class="api-status" 
+                                      th:classappend="${platform.apiKey != null and !platform.apiKey.isEmpty()} ? 'connected' : 'disconnected'"></span>
+                                <span th:text="${platform.apiKey != null and !platform.apiKey.isEmpty()} ? 'Bağlı' : 'Bağlı Değil'">API Durumu</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Senkronizasyon Durumu -->
+                        <div class="mb-3">
+                            <small class="text-muted">Son Senkronizasyon:</small>
+                            <div class="mt-1">
+                                <span th:if="${platform.lastSyncAt != null}" 
+                                      th:text="${#temporals.format(platform.lastSyncAt, 'dd.MM.yyyy HH:mm')}">01.01.2024 14:30</span>
+                                <span th:if="${platform.lastSyncAt == null}" class="text-muted">Henüz senkronize edilmedi</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Senkronizasyon Durumu -->
+                        <div class="mb-3">
+                            <small class="text-muted">Senkronizasyon:</small>
+                            <div class="mt-1">
+                                <span class="badge" 
+                                      th:classappend="${platform.syncEnabled} ? 'bg-info' : 'bg-warning'"
+                                      th:text="${platform.syncEnabled} ? 'Aktif' : 'Pasif'">Senkronizasyon</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card-footer">
+                        <div class="btn-group w-100" role="group">
+                            <a th:href="@{/platform-config/credentials/{id}(id=${platform.id})}" 
+                               class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-key"></i> API
+                            </a>
+                            <a th:href="@{/platform-config/edit/{id}(id=${platform.id})}" 
+                               class="btn btn-outline-secondary btn-sm">
+                                <i class="bi bi-pencil"></i> Düzenle
+                            </a>
+                            <button type="button" 
+                                    class="btn btn-outline-info btn-sm"
+                                    th:onclick="'testConnection(' + ${platform.id} + ')'">
+                                <i class="bi bi-wifi"></i> Test
+                            </button>
+                            <button type="button" 
+                                    class="btn btn-outline-success btn-sm"
+                                    th:onclick="'syncPlatform(' + ${platform.id} + ')'">
+                                <i class="bi bi-arrow-repeat"></i> Sync
+                            </button>
+                            <button type="button" 
+                                    class="btn btn-outline-danger btn-sm"
+                                    th:onclick="'deletePlatform(' + ${platform.id} + ')'">
+                                <i class="bi bi-trash"></i> Sil
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Platform Bulunamadı -->
+        <div th:if="${#lists.isEmpty(platforms)}" class="text-center py-5">
+            <i class="bi bi-gear display-1 text-muted"></i>
+            <h4 class="text-muted mt-3">Henüz platform eklenmemiş</h4>
+            <p class="text-muted">İlk platformunuzu ekleyerek başlayın</p>
+            <a href="/platform-config/new" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Platform Ekle
+            </a>
+        </div>
+    </div>
+
+    <!-- Silme Onay Modalı -->
+    <div class="modal fade" id="deleteModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Platform Silme</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Bu platformu silmek istediğinizden emin misiniz?</p>
+                    <p class="text-danger">
+                        <strong>Uyarı:</strong> Bu işlem geri alınamaz ve platform ile ilgili tüm veriler silinecektir!
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                    <form id="deleteForm" method="post" style="display: inline;">
+                        <button type="submit" class="btn btn-danger">Sil</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function testConnection(platformId) {
+            fetch('/platform-config/test-connection/' + platformId, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                }
+            })
+            .then(response => response.text())
+            .then(html => {
+                // Sayfayı yenile
+                location.reload();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Bağlantı testi sırasında hata oluştu');
+            });
+        }
+        
+        function syncPlatform(platformId) {
+            if (confirm('Platform senkronizasyonunu başlatmak istediğinizden emin misiniz?')) {
+                fetch('/platform-config/sync/' + platformId, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    }
+                })
+                .then(response => response.text())
+                .then(html => {
+                    location.reload();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Senkronizasyon sırasında hata oluştu');
+                });
+            }
+        }
+        
+        function deletePlatform(platformId) {
+            document.getElementById('deleteForm').action = '/platform-config/delete/' + platformId;
+            new bootstrap.Modal(document.getElementById('deleteModal')).show();
+        }
+    </script>
+</body>
+</html>
+

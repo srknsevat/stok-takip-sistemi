@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ATP Hesaplama - Stok Takip Sistemi</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <style>
+        .atp-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .atp-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            text-align: center;
+        }
+        
+        .constraint-item {
+            border-left: 4px solid #dc3545;
+            padding-left: 15px;
+            margin-bottom: 15px;
+            background-color: #f8d7da;
+            border-radius: 5px;
+        }
+        
+        .constraint-item.low-constraint {
+            border-left-color: #ffc107;
+            background-color: #fff3cd;
+        }
+        
+        .constraint-item.no-constraint {
+            border-left-color: #28a745;
+            background-color: #d4edda;
+        }
+        
+        .bom-level-1 { margin-left: 0px; }
+        .bom-level-2 { margin-left: 20px; }
+        .bom-level-3 { margin-left: 40px; }
+        .bom-level-4 { margin-left: 60px; }
+        .bom-level-5 { margin-left: 80px; }
+        
+        .stock-status {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        
+        .stock-ok { background-color: #28a745; }
+        .stock-low { background-color: #ffc107; }
+        .stock-out { background-color: #dc3545; }
+        
+        .calculation-method {
+            background-color: #e9ecef;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .atp-breakdown {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+        }
+        
+        .constraint-badge {
+            font-size: 0.8em;
+        }
+        
+        .atp-chart {
+            height: 300px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div th:replace="~{fragments/topbar :: topbar}"></div>
+    
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <div class="col-12">
+                <!-- Başlık -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>
+                        <i class="bi bi-calculator"></i>
+                        ATP (Available to Promise) Hesaplama
+                    </h2>
+                    <div>
+                        <button class="btn btn-primary" onclick="recalculateATP()">
+                            <i class="bi bi-arrow-clockwise"></i> Yeniden Hesapla
+                        </button>
+                        <button class="btn btn-success" onclick="updatePlatformStocks()">
+                            <i class="bi bi-arrow-repeat"></i> Platform Stoklarını Güncelle
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- ATP Sonucu -->
+                <div class="atp-card" th:if="${atpResult != null}">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <h4 th:text="${atpResult.material.materialCode + ' - ' + atpResult.material.materialName}">Malzeme Adı</h4>
+                            <p class="mb-0">Mevcut Stok: <strong th:text="${atpResult.currentStock}">0</strong></p>
+                            <p class="mb-0">Hesaplama Yöntemi: <strong th:text="${atpResult.calculationMethod}">-</strong></p>
+                        </div>
+                        <div class="col-md-6 text-center">
+                            <div class="atp-value" th:text="${atpResult.availableToPromise}">0</div>
+                            <p class="mb-0">ATP Miktarı</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Hesaplama Detayları -->
+                <div class="card mb-4" th:if="${atpResult != null}">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-info-circle"></i> Hesaplama Detayları
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="calculation-method">
+                            <h6>Hesaplama Yöntemi</h6>
+                            <p th:if="${atpResult.calculationMethod == 'BOM_BASED'}">
+                                <i class="bi bi-diagram-3"></i> BOM tabanlı hesaplama - Alt parçaların stok durumuna göre hesaplanmıştır.
+                            </p>
+                            <p th:if="${atpResult.calculationMethod == 'DIRECT_STOCK'}">
+                                <i class="bi bi-box"></i> Doğrudan stok hesaplama - Malzemenin mevcut stok miktarı kullanılmıştır.
+                            </p>
+                        </div>
+                        
+                        <div class="atp-breakdown">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <h6>Mevcut Stok</h6>
+                                    <p class="h4 text-primary" th:text="${atpResult.currentStock}">0</p>
+                                </div>
+                                <div class="col-md-3">
+                                    <h6>Rezerve Miktar</h6>
+                                    <p class="h4 text-warning" th:text="${atpResult.reservedQuantity != null ? atpResult.reservedQuantity : 0}">0</p>
+                                </div>
+                                <div class="col-md-3">
+                                    <h6>Güvenlik Stoku</h6>
+                                    <p class="h4 text-info" th:text="${atpResult.safetyStock != null ? atpResult.safetyStock : 0}">0</p>
+                                </div>
+                                <div class="col-md-3">
+                                    <h6>ATP Miktarı</h6>
+                                    <p class="h4 text-success" th:text="${atpResult.availableToPromise}">0</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Kısıtlamalar -->
+                <div class="card mb-4" th:if="${hasConstraints}">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-exclamation-triangle"></i> Stok Kısıtlamaları
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div th:each="constraint : ${constraints}" class="constraint-item" 
+                             th:classappend="${constraint.constraintQuantity > 5 ? 'no-constraint' : (constraint.constraintQuantity > 0 ? 'low-constraint' : '')">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 th:text="${constraint.constraintMaterial.materialCode + ' - ' + constraint.constraintMaterial.materialName}">Malzeme Adı</h6>
+                                    <p class="mb-1" th:text="${constraint.description}">Açıklama</p>
+                                    <small class="text-muted">
+                                        BOM Seviyesi: <span th:text="${constraint.bomLevel}">1</span> | 
+                                        Yol: <span th:text="${constraint.bomPath}">-</span>
+                                    </small>
+                                </div>
+                                <div class="text-end">
+                                    <div class="mb-2">
+                                        <span class="badge bg-primary constraint-badge">
+                                            Gerekli: <span th:text="${constraint.requiredQuantity}">0</span>
+                                        </span>
+                                        <span class="badge bg-info constraint-badge">
+                                            Mevcut: <span th:text="${constraint.availableQuantity}">0</span>
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <span class="badge bg-success constraint-badge" th:if="${constraint.constraintQuantity > 5}">
+                                            <i class="bi bi-check-circle"></i> Yeterli
+                                        </span>
+                                        <span class="badge bg-warning constraint-badge" th:if="${constraint.constraintQuantity > 0 and constraint.constraintQuantity <= 5}">
+                                            <i class="bi bi-exclamation-triangle"></i> Düşük
+                                        </span>
+                                        <span class="badge bg-danger constraint-badge" th:if="${constraint.constraintQuantity <= 0}">
+                                            <i class="bi bi-x-circle"></i> Eksik
+                                        </span>
+                                    </div>
+                                    <div class="mt-1">
+                                        <strong>Maksimum Üretim: <span th:text="${constraint.constraintQuantity}">0</span> adet</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- ATP Grafiği -->
+                <div class="card mb-4" th:if="${atpResult != null}">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-bar-chart"></i> ATP Analizi
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="atp-chart">
+                            <div class="text-center">
+                                <i class="bi bi-graph-up display-1 text-muted"></i>
+                                <p class="text-muted">ATP Grafiği burada gösterilecek</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Platform Stok Durumu -->
+                <div class="card mb-4" th:if="${atpResult != null}">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-globe"></i> Platform Stok Durumu
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Platform</th>
+                                        <th>Mevcut Stok</th>
+                                        <th>ATP Stok</th>
+                                        <th>Son Senkronizasyon</th>
+                                        <th>Durum</th>
+                                        <th>İşlemler</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>eBay</td>
+                                        <td>15</td>
+                                        <td th:text="${atpResult.availableToPromise}">0</td>
+                                        <td>2024-01-15 14:30</td>
+                                        <td>
+                                            <span class="badge bg-success">Senkronize</span>
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-primary">Güncelle</button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Shopify</td>
+                                        <td>8</td>
+                                        <td th:text="${atpResult.availableToPromise}">0</td>
+                                        <td>2024-01-15 14:25</td>
+                                        <td>
+                                            <span class="badge bg-warning">Beklemede</span>
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-primary">Güncelle</button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Amazon</td>
+                                        <td>12</td>
+                                        <td th:text="${atpResult.availableToPromise}">0</td>
+                                        <td>2024-01-15 14:20</td>
+                                        <td>
+                                            <span class="badge bg-success">Senkronize</span>
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-primary">Güncelle</button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Hata Mesajı -->
+                <div class="alert alert-danger" th:if="${error != null}">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <span th:text="${error}"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function recalculateATP() {
+            // ATP'yi yeniden hesapla
+            location.reload();
+        }
+        
+        function updatePlatformStocks() {
+            if (confirm('Tüm platform stoklarını güncellemek istediğinizden emin misiniz?')) {
+                // Platform stoklarını güncelle
+                fetch('/atp/sync-all-platforms', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Platform stokları başarıyla güncellendi!');
+                        location.reload();
+                    } else {
+                        alert('Hata: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    alert('Hata: ' + error.message);
+                });
+            }
+        }
+        
+        // Sayfa yüklendiğinde
+        document.addEventListener('DOMContentLoaded', function() {
+            // ATP hesaplama animasyonu
+            const atpValue = document.querySelector('.atp-value');
+            if (atpValue) {
+                const finalValue = parseInt(atpValue.textContent);
+                let currentValue = 0;
+                const increment = finalValue / 50;
+                
+                const timer = setInterval(() => {
+                    currentValue += increment;
+                    if (currentValue >= finalValue) {
+                        currentValue = finalValue;
+                        clearInterval(timer);
+                    }
+                    atpValue.textContent = Math.floor(currentValue);
+                }, 50);
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="#{stock.title}">Stok Yönetimi</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+</head>
+<body>
+    <div th:replace="~{fragments/topbar :: topbar}"></div>
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 th:text="${stockOperation == 'add'} ? #{stock.add.header} : #{stock.remove.header}">Stok Yönetimi</h2>
+            <a th:href="@{/products}" class="btn btn-secondary" th:text="#{button.back}">Geri</a>
+        </div>
+
+        <!-- Ürün Bilgileri -->
+        <div class="card mb-4">
+            <div class="card-header" th:text="#{product.info}">Ürün Bilgileri</div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong th:text="#{product.name} + ':'">Ürün Adı:</strong> 
+                           <span th:text="${product.name}">Laptop</span></p>
+                        <p><strong th:text="#{product.price} + ':'">Fiyat:</strong> 
+                           <span th:text="${#numbers.formatDecimal(product.price, 0, 'POINT', 2, 'COMMA')} + ' ₺'">1000.00 ₺</span></p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong th:text="#{product.stock} + ':'">Mevcut Stok:</strong> 
+                           <span th:text="${product.stockQuantity}" 
+                                 th:class="${product.stockQuantity < 10 ? 'text-danger' : 'text-success'}">50</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stok Güncelleme Formu -->
+        <div class="card">
+            <div class="card-header" th:text="#{stock.update}">Stok Güncelleme</div>
+            <div class="card-body">
+                <form th:action="@{/products/stock/{operation}/{id}(operation=${stockOperation},id=${product.id})}" 
+                      method="post" class="row g-3">
+                    <div class="col-md-6">
+                        <label for="quantity" class="form-label" th:text="#{stock.quantity.label}">Miktar</label>
+                        <input type="number" class="form-control" id="quantity" name="quantity" required
+                               th:placeholder="${stockOperation == 'add'} ? #{stock.quantity.add} : #{stock.quantity.remove}">
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" 
+                                class="btn rounded-pill px-4" 
+                                th:style="${stockOperation == 'add'} ? 
+                                         'background-color: #28a745; color: white;' : 
+                                         'background-color: #ffc107; color: black;'"
+                                th:text="${stockOperation == 'add'} ? #{button.stock.add} : #{button.stock.remove}">
+                            Stok Güncelle
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Başarı/hata mesajları -->
+        <div th:if="${message}" class="alert alert-success">
+            <span th:text="#{${message}}">Success message</span>
+        </div>
+        <div th:if="${error}" class="alert alert-danger">
+            <span th:text="#{${error}}">Error message</span>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html> 

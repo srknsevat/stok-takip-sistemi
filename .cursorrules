@@ -1,0 +1,102 @@
+SEN3004 WEB PROGRAMMING
+PROJECT ASSIGNMENT
+1. DEFINITION
+You are required to develop a Spring Boot web application that supports CRUD operations (Create, Read, Update, Delete) on a topic of your choice. Students are free to select any relevant subject for the project, as long as it complies with the requirements specified in Section 4.
+
+2. DEVELOPMENT ENVIRONMENT
+Your project submission must be a Maven project compatible with Spring Tool Suite (STS) IDE.
+⚠️ If your project cannot be imported into Spring Tool Suite IDE, it will not be graded.
+
+You are required to:
+
+Use an in-memory H2 database for all database-related tasks.
+
+Use Thymeleaf for building the application views.
+
+3. PROJECT GROUPS
+Students must form groups of two or three members.
+
+If a member leaves the group, the remaining members must take over the departing member’s tasks.
+
+4. REQUIREMENTS
+Your application must provide a clean and user-friendly interface.
+Below are the mandatory requirements (additional features are welcome if relevant):
+
+a. Number of Views
+If the group has two members, the application must include at least five (5) different views.
+
+If the group has three members, the application must include at least nine (9) different views.
+
+b. Data Entry Requirements
+The application must collect at least five distinct input fields from the user.
+The following data types must be used (additional types are allowed):
+
+String
+
+Date (LocalDate)
+
+Number
+
+At least one input must be a collection (e.g., List, array).
+
+c. Validation Requirements
+You must implement Bean Validation to enforce the following constraints:
+
+Non-null / non-empty values.
+
+Minimum and maximum values where applicable.
+
+At least one custom validation method must be implemented, which checks a condition beyond simple string equality.
+
+d. Error Handling and User Feedback
+Type conversion errors and validation messages must be displayed inside the input forms.
+
+All validation messages must be stored in a messages.properties file to support localization.
+
+e. Database Requirements
+All validated user inputs must be stored in the H2 in-memory database.
+
+You must design an appropriate database schema.
+
+Initialize the database using:
+
+schema.sql (for database structure)
+
+data.sql (for initial data population).
+
+Your application must:
+
+Allow users to view, edit, and delete records.
+
+Provide corresponding Thymeleaf views for these operations.
+
+Display collection-based data dynamically using Thymeleaf’s built-in collection processing.
+
+Format date values in the dd.MM.yyyy format.
+
+Enforce the same validation rules when editing data as during creation.
+
+Database operations may use JDBC or JPA/Hibernate.
+
+f. Navigation Requirements
+The application must include a navigation mechanism (e.g., links, menus) between views to ensure usability.
+
+g. Internationalization
+The application must support at least two languages (e.g., Turkish and English).
+
+A language-switching mechanism must allow users to switch between languages.
+
+All text content, validation messages, and labels must be internationalized using resource bundles.
+
+You must design and implement all necessary classes and files to fulfill these requirements.
+
+5. PROJECT REPORT
+The project report must contain the following sections:
+
+Project Overview – a brief explanation of the project’s purpose, scope, and objectives.
+
+Team Contributions – list of team members’ roles and responsibilities, specifying individual tasks.
+
+Database Schema – a visual diagram of your database structure.
+
+Functionality Documentation – screenshots of each implemented feature, with descriptions.

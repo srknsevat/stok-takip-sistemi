@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="#{stock.movements.title}">Stok Hareketleri</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+</head>
+<body>
+    <div th:replace="~{fragments/topbar :: topbar}"></div>
+    
+    <div class="container mt-4">
+        <h2 th:text="#{stock.movements.header}">Stok Hareketleri</h2>
+
+        <table class="table table-striped mt-4">
+            <thead>
+                <tr>
+                    <th th:text="#{product.code}">Ürün Kodu</th>
+                    <th th:text="#{product.name}">Ürün Adı</th>
+                    <th th:text="#{product.price}">Fiyat</th>
+                    <th th:text="#{stock.movement}">Stok Giriş/Çıkış</th>
+                    <th th:text="#{stock.movement.date}">Tarih</th>
+                    <th th:text="#{product.categories}">Kategori</th>
+                    <th th:text="#{product.actions}">İşlemler</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="movement : ${movements}">
+                    <td th:text="${movement.product.code}">ABC123</td>
+                    <td th:text="${movement.product.name}">Laptop</td>
+                    <td th:text="${#numbers.formatDecimal(movement.product.price, 0, 'POINT', 2, 'COMMA')} + ' ₺'">1000.00 ₺</td>
+                    <td>
+                        <span th:text="${movement.quantity > 0 ? '+' : ''} + ${movement.quantity}"
+                              th:class="${movement.quantity > 0 ? 'text-success' : 'text-danger'}">
+                            +5
+                        </span>
+                    </td>
+                    <td th:text="${#temporals.format(movement.movementDate, 'dd.MM.yyyy HH:mm')}">01.01.2024 14:30</td>
+                    <td th:text="${movement.product.categories}">Elektronik</td>
+                    <td>
+                        <div class="d-flex gap-2">
+                            <a th:href="@{/products/detail/{id}(id=${movement.product.id})}" 
+                               class="btn btn-sm rounded-pill px-3" 
+                               style="background-color: #17a2b8; color: white;"
+                               th:text="#{button.detail}">Detay</a>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html> 

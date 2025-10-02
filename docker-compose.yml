@@ -1,0 +1,105 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:13-alpine
+    container_name: stoktakip-postgres
+    environment:
+      POSTGRES_DB: stoktakip_ecommerce
+      POSTGRES_USER: stoktakip_user
+      POSTGRES_PASSWORD: stoktakip_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./src/main/resources/schema-ecommerce.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./src/main/resources/data-ecommerce.sql:/docker-entrypoint-initdb.d/02-data.sql
+    networks:
+      - stoktakip-network
+    restart: unless-stopped
+
+  # Redis Cache
+  redis:
+    image: redis:6-alpine
+    container_name: stoktakip-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - stoktakip-network
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+
+  # RabbitMQ Message Queue
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: stoktakip-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      - "5672:5672"
+      - "15672:15672"  # Management UI
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - stoktakip-network
+    restart: unless-stopped
+
+  # Main Application
+  app:
+    build: .
+    container_name: stoktakip-app
+    environment:
+      SPRING_PROFILES_ACTIVE: ecommerce
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/stoktakip_ecommerce
+      SPRING_DATASOURCE_USERNAME: stoktakip_user
+      SPRING_DATASOURCE_PASSWORD: stoktakip_pass
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: guest
+      SPRING_RABBITMQ_PASSWORD: guest
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+      - redis
+      - rabbitmq
+    networks:
+      - stoktakip-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/stoktakip/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Nginx Reverse Proxy (Optional)
+  nginx:
+    image: nginx:alpine
+    container_name: stoktakip-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./ssl:/etc/nginx/ssl
+    depends_on:
+      - app
+    networks:
+      - stoktakip-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+  rabbitmq_data:
+
+networks:
+  stoktakip-network:
+    driver: bridge
