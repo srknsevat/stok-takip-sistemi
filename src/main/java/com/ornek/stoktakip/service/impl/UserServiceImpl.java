@@ -11,8 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
 
 @Service
 @Transactional
@@ -31,12 +29,6 @@ public class UserServiceImpl implements UserService {
     @Transactional(readOnly = true)
     public List<User> getAllUsers() {
         return userRepository.findAll();
-    }
-    
-    @Override
-    @Transactional(readOnly = true)
-    public List<User> getActiveUsers() {
-        return userRepository.findByIsActiveTrue();
     }
     
     @Override
@@ -60,8 +52,6 @@ public class UserServiceImpl implements UserService {
     @Override
     public User saveUser(User user) {
         if (user.getId() == null) {
-            // Yeni kullanıcı - şifreyi şifrele
-            user.setPassword(passwordEncoder.encode(user.getPassword()));
             user.setCreatedAt(LocalDateTime.now());
         }
         user.setUpdatedAt(LocalDateTime.now());
@@ -73,13 +63,6 @@ public class UserServiceImpl implements UserService {
         User existingUser = userRepository.findById(user.getId())
                 .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı: " + user.getId()));
         
-        // Şifre değişmemişse mevcut şifreyi koru
-        if (user.getPassword() == null || user.getPassword().isEmpty()) {
-            user.setPassword(existingUser.getPassword());
-        } else {
-            user.setPassword(passwordEncoder.encode(user.getPassword()));
-        }
-        
         user.setUpdatedAt(LocalDateTime.now());
         return userRepository.save(user);
     }
@@ -90,268 +73,132 @@ public class UserServiceImpl implements UserService {
     }
     
     @Override
-    public User createUser(String username, String email, String password, String firstName, String lastName, Set<User.Role> roles) {
-        if (isUserExists(username, email)) {
-            throw new RuntimeException("Kullanıcı adı veya e-posta zaten kullanımda");
+    public User createUser(String username, String email, String password, String firstName, String lastName, User.UserRole role) {
+        if (isUsernameExists(username)) {
+            throw new RuntimeException("Kullanıcı adı zaten kullanımda: " + username);
         }
         
-        User user = new User();
-        user.setUsername(username);
-        user.setEmail(email);
-        user.setPassword(passwordEncoder.encode(password));
-        user.setFirstName(firstName);
-        user.setLastName(lastName);
-        user.setRoles(roles);
-        user.setIsActive(true);
-        user.setEmailVerified(false);
-        user.setEmailVerificationToken(UUID.randomUUID().toString());
+        if (isEmailExists(email)) {
+            throw new RuntimeException("E-posta adresi zaten kullanımda: " + email);
+        }
+        
+        User user = new User(username, email, passwordEncoder.encode(password), firstName, lastName, role);
+        user.setCreatedAt(LocalDateTime.now());
+        user.setUpdatedAt(LocalDateTime.now());
         
         return userRepository.save(user);
-    }
-    
-    @Override
-    public User createUserByAdmin(String username, String email, String password, String firstName, String lastName, Set<User.Role> roles, Long createdBy) {
-        if (isUserExists(username, email)) {
-            throw new RuntimeException("Kullanıcı adı veya e-posta zaten kullanımda");
-        }
-        
-        User user = new User();
-        user.setUsername(username);
-        user.setEmail(email);
-        user.setPassword(passwordEncoder.encode(password));
-        user.setFirstName(firstName);
-        user.setLastName(lastName);
-        user.setRoles(roles);
-        user.setIsActive(true);
-        user.setEmailVerified(true); // Admin tarafından oluşturulan kullanıcılar otomatik doğrulanır
-        user.setCreatedBy(createdBy);
-        
-        return userRepository.save(user);
-    }
-    
-    @Override
-    @Transactional(readOnly = true)
-    public boolean authenticateUser(String username, String password) {
-        Optional<User> userOpt = userRepository.findByUsernameOrEmail(username, username);
-        if (userOpt.isEmpty()) {
-            return false;
-        }
-        
-        User user = userOpt.get();
-        
-        // Hesap kilitli mi kontrol et
-        if (!user.isAccountNonLocked()) {
-            return false;
-        }
-        
-        // Şifre kontrolü
-        boolean passwordMatches = passwordEncoder.matches(password, user.getPassword());
-        
-        if (passwordMatches) {
-            resetFailedLoginAttempts(username);
-            updateLastLogin(username);
-        } else {
-            incrementFailedLoginAttempts(username);
-        }
-        
-        return passwordMatches;
-    }
-    
-    @Override
-    @Transactional(readOnly = true)
-    public boolean isUserExists(String username, String email) {
-        return userRepository.findByUsernameOrEmail(username, email).isPresent();
-    }
-    
-    @Override
-    @Transactional(readOnly = true)
-    public boolean isUsernameAvailable(String username) {
-        return !userRepository.findByUsername(username).isPresent();
-    }
-    
-    @Override
-    @Transactional(readOnly = true)
-    public boolean isEmailAvailable(String email) {
-        return !userRepository.findByEmail(email).isPresent();
-    }
-    
-    @Override
-    public void changePassword(Long userId, String oldPassword, String newPassword) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı: " + userId));
-        
-        if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
-            throw new RuntimeException("Mevcut şifre yanlış");
-        }
-        
-        user.setPassword(passwordEncoder.encode(newPassword));
-        userRepository.save(user);
-    }
-    
-    @Override
-    public void resetPassword(String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("E-posta adresi bulunamadı: " + email));
-        
-        String token = UUID.randomUUID().toString();
-        user.setPasswordResetToken(token);
-        user.setPasswordResetExpires(LocalDateTime.now().plusHours(24)); // 24 saat geçerli
-        
-        userRepository.save(user);
-        
-        // E-posta gönderme işlemi burada yapılabilir
-        System.out.println("Şifre sıfırlama token'ı: " + token);
-    }
-    
-    @Override
-    @Transactional(readOnly = true)
-    public boolean validatePasswordResetToken(String token) {
-        return userRepository.findByPasswordResetToken(token, LocalDateTime.now()).isPresent();
-    }
-    
-    @Override
-    public void updatePasswordWithToken(String token, String newPassword) {
-        User user = userRepository.findByPasswordResetToken(token, LocalDateTime.now())
-                .orElseThrow(() -> new RuntimeException("Geçersiz veya süresi dolmuş token"));
-        
-        user.setPassword(passwordEncoder.encode(newPassword));
-        user.setPasswordResetToken(null);
-        user.setPasswordResetExpires(null);
-        
-        userRepository.save(user);
-    }
-    
-    @Override
-    public void sendEmailVerification(String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("E-posta adresi bulunamadı: " + email));
-        
-        if (user.getEmailVerified()) {
-            throw new RuntimeException("E-posta zaten doğrulanmış");
-        }
-        
-        String token = UUID.randomUUID().toString();
-        user.setEmailVerificationToken(token);
-        userRepository.save(user);
-        
-        // E-posta gönderme işlemi burada yapılabilir
-        System.out.println("E-posta doğrulama token'ı: " + token);
-    }
-    
-    @Override
-    public boolean verifyEmail(String token) {
-        Optional<User> userOpt = userRepository.findByEmailVerificationToken(token);
-        if (userOpt.isEmpty()) {
-            return false;
-        }
-        
-        User user = userOpt.get();
-        user.setEmailVerified(true);
-        user.setEmailVerificationToken(null);
-        userRepository.save(user);
-        
-        return true;
-    }
-    
-    @Override
-    public void lockUser(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı: " + userId));
-        
-        user.setLockedUntil(LocalDateTime.now().plusHours(24)); // 24 saat kilitle
-        userRepository.save(user);
-    }
-    
-    @Override
-    public void unlockUser(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı: " + userId));
-        
-        user.setLockedUntil(null);
-        user.setFailedLoginAttempts(0);
-        userRepository.save(user);
-    }
-    
-    @Override
-    public void incrementFailedLoginAttempts(String username) {
-        Optional<User> userOpt = userRepository.findByUsername(username);
-        if (userOpt.isPresent()) {
-            User user = userOpt.get();
-            user.incrementFailedLoginAttempts();
-            userRepository.save(user);
-        }
-    }
-    
-    @Override
-    public void resetFailedLoginAttempts(String username) {
-        Optional<User> userOpt = userRepository.findByUsername(username);
-        if (userOpt.isPresent()) {
-            User user = userOpt.get();
-            user.resetFailedLoginAttempts();
-            userRepository.save(user);
-        }
-    }
-    
-    @Override
-    public void assignRoles(Long userId, Set<User.Role> roles) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı: " + userId));
-        
-        user.setRoles(roles);
-        userRepository.save(user);
-    }
-    
-    @Override
-    public void removeRole(Long userId, User.Role role) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı: " + userId));
-        
-        if (user.getRoles() != null) {
-            user.getRoles().remove(role);
-            userRepository.save(user);
-        }
-    }
-    
-    @Override
-    @Transactional(readOnly = true)
-    public boolean hasRole(Long userId, User.Role role) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı: " + userId));
-        
-        return user.hasRole(role);
-    }
-    
-    @Override
-    @Transactional(readOnly = true)
-    public boolean hasAnyRole(Long userId, User.Role... roles) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı: " + userId));
-        
-        return user.hasAnyRole(roles);
     }
     
     @Override
     @Transactional(readOnly = true)
     public List<User> searchUsers(String searchTerm) {
-        return userRepository.findBySearchTerm(searchTerm);
+        return userRepository.findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCase(searchTerm, searchTerm);
     }
     
     @Override
     @Transactional(readOnly = true)
-    public List<User> getUsersByRole(User.Role role) {
-        return userRepository.findByRolesContaining(role);
-    }
-    
-    @Override
-    @Transactional(readOnly = true)
-    public List<User> getLockedUsers() {
-        return userRepository.findLockedUsers(LocalDateTime.now());
+    public List<User> getActiveUsers() {
+        return userRepository.findByIsActiveTrue();
     }
     
     @Override
     @Transactional(readOnly = true)
     public List<User> getInactiveUsers() {
-        return userRepository.findInactiveUsers(LocalDateTime.now().minusDays(30)); // 30 gün önce
+        return userRepository.findByIsActiveFalse();
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public List<User> getUsersByRole(User.UserRole role) {
+        return userRepository.findByRole(role);
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public List<User> getUsersByRoleAndActive(User.UserRole role, boolean isActive) {
+        if (isActive) {
+            return userRepository.findByRoleAndIsActiveTrue(role);
+        } else {
+            return userRepository.findByRole(role).stream()
+                    .filter(user -> !user.getIsActive())
+                    .toList();
+        }
+    }
+    
+    @Override
+    public void changePassword(Long userId, String newPassword) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı: " + userId));
+        
+        user.setPassword(passwordEncoder.encode(newPassword));
+        user.setUpdatedAt(LocalDateTime.now());
+        userRepository.save(user);
+    }
+    
+    @Override
+    public void resetPassword(Long userId, String newPassword) {
+        changePassword(userId, newPassword);
+    }
+    
+    @Override
+    public boolean validatePassword(String password) {
+        // Şifre validasyon kuralları
+        return password != null && password.length() >= 6;
+    }
+    
+    @Override
+    public void activateUser(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı: " + userId));
+        
+        user.setIsActive(true);
+        user.setUpdatedAt(LocalDateTime.now());
+        userRepository.save(user);
+    }
+    
+    @Override
+    public void deactivateUser(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı: " + userId));
+        
+        user.setIsActive(false);
+        user.setUpdatedAt(LocalDateTime.now());
+        userRepository.save(user);
+    }
+    
+    @Override
+    public void updateLastLogin(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı: " + userId));
+        
+        user.setLastLoginAt(LocalDateTime.now());
+        userRepository.save(user);
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public boolean isUsernameExists(String username) {
+        return userRepository.findByUsername(username).isPresent();
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public boolean isUsernameExists(String username, Long excludeId) {
+        Optional<User> existing = userRepository.findByUsername(username);
+        return existing.isPresent() && !existing.get().getId().equals(excludeId);
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public boolean isEmailExists(String email) {
+        return userRepository.findByEmail(email).isPresent();
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public boolean isEmailExists(String email, Long excludeId) {
+        Optional<User> existing = userRepository.findByEmail(email);
+        return existing.isPresent() && !existing.get().getId().equals(excludeId);
     }
     
     @Override
@@ -368,17 +215,58 @@ public class UserServiceImpl implements UserService {
     
     @Override
     @Transactional(readOnly = true)
-    public long getUserCountByRole(User.Role role) {
+    public long getInactiveUserCount() {
+        return getTotalUserCount() - getActiveUserCount();
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public long getUserCountByRole(User.UserRole role) {
         return userRepository.countByRole(role);
     }
     
     @Override
-    public void updateLastLogin(String username) {
-        Optional<User> userOpt = userRepository.findByUsername(username);
-        if (userOpt.isPresent()) {
-            User user = userOpt.get();
-            user.setLastLogin(LocalDateTime.now());
-            userRepository.save(user);
+    @Transactional(readOnly = true)
+    public boolean canUserManageUsers(User currentUser, User targetUser) {
+        if (currentUser == null || targetUser == null) {
+            return false;
         }
+        
+        // Süper admin herkesi yönetebilir
+        if (currentUser.getRole() == User.UserRole.SUPER_ADMIN) {
+            return true;
+        }
+        
+        // Admin sadece kendisinden düşük seviyeli kullanıcıları yönetebilir
+        if (currentUser.getRole() == User.UserRole.ADMIN) {
+            return targetUser.getRole() != User.UserRole.SUPER_ADMIN;
+        }
+        
+        return false;
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public boolean hasRole(User user, User.UserRole role) {
+        return user != null && user.getRole() == role;
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public boolean isAdmin(User user) {
+        return user != null && (user.getRole() == User.UserRole.SUPER_ADMIN || user.getRole() == User.UserRole.ADMIN);
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public List<User> getRecentlyLoggedInUsers(int days) {
+        LocalDateTime cutoffDate = LocalDateTime.now().minusDays(days);
+        return userRepository.findInactiveUsers(cutoffDate);
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public List<User> getUsersNeverLoggedIn() {
+        return userRepository.findUsersNeverLoggedIn();
     }
 }

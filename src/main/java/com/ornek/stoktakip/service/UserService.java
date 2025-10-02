@@ -3,14 +3,11 @@ package com.ornek.stoktakip.service;
 import com.ornek.stoktakip.entity.User;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 public interface UserService {
     
-    // Kullanıcı CRUD işlemleri
+    // Temel CRUD operasyonları
     List<User> getAllUsers();
-    
-    List<User> getActiveUsers();
     
     Optional<User> getUserById(Long id);
     
@@ -25,67 +22,60 @@ public interface UserService {
     void deleteUser(Long id);
     
     // Kullanıcı oluşturma
-    User createUser(String username, String email, String password, String firstName, String lastName, Set<User.Role> roles);
+    User createUser(String username, String email, String password, String firstName, String lastName, User.UserRole role);
     
-    User createUserByAdmin(String username, String email, String password, String firstName, String lastName, Set<User.Role> roles, Long createdBy);
-    
-    // Kimlik doğrulama
-    boolean authenticateUser(String username, String password);
-    
-    boolean isUserExists(String username, String email);
-    
-    boolean isUsernameAvailable(String username);
-    
-    boolean isEmailAvailable(String email);
-    
-    // Şifre işlemleri
-    void changePassword(Long userId, String oldPassword, String newPassword);
-    
-    void resetPassword(String email);
-    
-    boolean validatePasswordResetToken(String token);
-    
-    void updatePasswordWithToken(String token, String newPassword);
-    
-    // E-posta doğrulama
-    void sendEmailVerification(String email);
-    
-    boolean verifyEmail(String token);
-    
-    // Hesap kilitleme
-    void lockUser(Long userId);
-    
-    void unlockUser(Long userId);
-    
-    void incrementFailedLoginAttempts(String username);
-    
-    void resetFailedLoginAttempts(String username);
-    
-    // Rol yönetimi
-    void assignRoles(Long userId, Set<User.Role> roles);
-    
-    void removeRole(Long userId, User.Role role);
-    
-    boolean hasRole(Long userId, User.Role role);
-    
-    boolean hasAnyRole(Long userId, User.Role... roles);
-    
-    // Kullanıcı arama ve filtreleme
+    // Arama ve filtreleme
     List<User> searchUsers(String searchTerm);
     
-    List<User> getUsersByRole(User.Role role);
-    
-    List<User> getLockedUsers();
+    List<User> getActiveUsers();
     
     List<User> getInactiveUsers();
+    
+    List<User> getUsersByRole(User.UserRole role);
+    
+    List<User> getUsersByRoleAndActive(User.UserRole role, boolean isActive);
+    
+    // Şifre yönetimi
+    void changePassword(Long userId, String newPassword);
+    
+    void resetPassword(Long userId, String newPassword);
+    
+    boolean validatePassword(String password);
+    
+    // Durum yönetimi
+    void activateUser(Long userId);
+    
+    void deactivateUser(Long userId);
+    
+    void updateLastLogin(Long userId);
+    
+    // Doğrulama
+    boolean isUsernameExists(String username);
+    
+    boolean isUsernameExists(String username, Long excludeId);
+    
+    boolean isEmailExists(String email);
+    
+    boolean isEmailExists(String email, Long excludeId);
     
     // İstatistikler
     long getTotalUserCount();
     
     long getActiveUserCount();
     
-    long getUserCountByRole(User.Role role);
+    long getInactiveUserCount();
     
-    // Son giriş güncelleme
-    void updateLastLogin(String username);
+    long getUserCountByRole(User.UserRole role);
+    
+    // Yetki kontrolü
+    boolean canUserManageUsers(User currentUser, User targetUser);
+    
+    boolean hasRole(User user, User.UserRole role);
+    
+    boolean isAdmin(User user);
+    
+    // Son giriş yapan kullanıcılar
+    List<User> getRecentlyLoggedInUsers(int days);
+    
+    List<User> getUsersNeverLoggedIn();
 }

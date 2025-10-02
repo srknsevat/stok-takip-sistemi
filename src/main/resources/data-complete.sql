@@ -1,101 +1,65 @@
--- Tam veri dosyası - Tüm örnek veriler
+-- Örnek veri ekleme scripti
 
--- Kategoriler
-INSERT INTO categories (name, description) VALUES
-('Elektronik', 'Elektronik ürünler ve aksesuarları'),
-('Giyim', 'Giyim ve aksesuar ürünleri'),
-('Ev & Yaşam', 'Ev ve yaşam ürünleri'),
-('Spor', 'Spor ve outdoor ürünleri'),
-('Kitap', 'Kitap ve dergi'),
-('Kozmetik', 'Kozmetik ve kişisel bakım'),
-('Oyuncak', 'Oyuncak ve oyun ürünleri'),
-('Müzik', 'Müzik enstrümanları ve aksesuarları');
-
--- Ürünler
-INSERT INTO products (name, code, description, price, stock_quantity, min_stock_level, category_id) VALUES
-('Gaming Laptop', 'LAP001', 'Yüksek performanslı gaming laptop - RTX 4060, 16GB RAM', 45000.00, 10, 2, 1),
-('Akıllı Telefon', 'PHN001', 'Son model akıllı telefon - 128GB, 6.1 inç', 25000.00, 25, 5, 1),
-('Kablosuz Kulaklık', 'EAR001', 'Bluetooth kulaklık - Noise Cancelling', 1500.00, 50, 10, 1),
-('Spor Ayakkabı', 'SHO001', 'Rahat spor ayakkabı - Koşu için ideal', 500.00, 100, 20, 4),
-('Fitness Matı', 'MAT001', 'Yoga ve fitness matı - 6mm kalınlık', 200.00, 75, 15, 4),
-('Programlama Kitabı', 'BOK001', 'Java Programlama Dili - Temel Seviye', 100.00, 200, 50, 5),
-('Web Tasarım Kitabı', 'BOK002', 'HTML, CSS, JavaScript - Kapsamlı Rehber', 120.00, 150, 30, 5),
-('Ruj', 'COS001', 'Uzun süre kalıcı ruj - 12 farklı renk', 80.00, 300, 50, 6),
-('Oyuncak Araba', 'TOY001', 'Uzaktan kumandalı oyuncak araba', 150.00, 80, 20, 7),
-('Gitar', 'MUS001', 'Klasik gitar - Başlangıç seviyesi', 800.00, 15, 5, 8);
-
--- Stok hareketleri (örnek)
-INSERT INTO stock_movements (product_id, quantity, movement_type, movement_date, reason, created_by) VALUES
-(1, 10, 'ENTRY', CURRENT_TIMESTAMP, 'İlk stok girişi', 1),
-(2, 25, 'ENTRY', CURRENT_TIMESTAMP, 'İlk stok girişi', 1),
-(3, 50, 'ENTRY', CURRENT_TIMESTAMP, 'İlk stok girişi', 1),
-(4, 100, 'ENTRY', CURRENT_TIMESTAMP, 'İlk stok girişi', 1),
-(5, 75, 'ENTRY', CURRENT_TIMESTAMP, 'İlk stok girişi', 1),
-(6, 200, 'ENTRY', CURRENT_TIMESTAMP, 'İlk stok girişi', 1),
-(7, 150, 'ENTRY', CURRENT_TIMESTAMP, 'İlk stok girişi', 1),
-(8, 300, 'ENTRY', CURRENT_TIMESTAMP, 'İlk stok girişi', 1),
-(9, 80, 'ENTRY', CURRENT_TIMESTAMP, 'İlk stok girişi', 1),
-(10, 15, 'ENTRY', CURRENT_TIMESTAMP, 'İlk stok girişi', 1);
+-- Kullanıcılar
+INSERT INTO users (username, email, password, first_name, last_name, role, is_active, created_at, updated_at) VALUES
+('admin', 'admin@stoktakip.com', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVEFDi', 'Admin', 'User', 'SUPER_ADMIN', true, NOW(), NOW()),
+('manager', 'manager@stoktakip.com', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVEFDi', 'Manager', 'User', 'ADMIN', true, NOW(), NOW()),
+('operator', 'operator@stoktakip.com', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVEFDi', 'Operator', 'User', 'OPERATOR', true, NOW(), NOW());
 
 -- Platformlar
-INSERT INTO platforms (name, code, description, api_endpoint, webhook_url, is_active, sync_enabled) VALUES
-('eBay', 'EBAY', 'eBay e-ticaret platformu', 'https://api.ebay.com', 'https://your-domain.com/webhooks/ebay', TRUE, TRUE),
-('Shopify', 'SHOPIFY', 'Shopify e-ticaret platformu', 'https://your-shop.myshopify.com', 'https://your-domain.com/webhooks/shopify', TRUE, TRUE),
-('Amazon', 'AMAZON', 'Amazon e-ticaret platformu', 'https://sellingpartnerapi-eu.amazon.com', 'https://your-domain.com/webhooks/amazon', TRUE, TRUE),
-('Trendyol', 'TRENDYOL', 'Trendyol e-ticaret platformu', 'https://api.trendyol.com', 'https://your-domain.com/webhooks/trendyol', TRUE, TRUE),
-('Hepsiburada', 'HEPSIBURADA', 'Hepsiburada e-ticaret platformu', 'https://api.hepsiburada.com', 'https://your-domain.com/webhooks/hepsiburada', FALSE, FALSE),
-('N11', 'N11', 'N11 e-ticaret platformu', 'https://api.n11.com', 'https://your-domain.com/webhooks/n11', FALSE, FALSE);
+INSERT INTO platforms (name, code, description, is_active, sync_enabled, created_at, updated_at) VALUES
+('eBay', 'EBAY', 'eBay e-ticaret platformu', true, true, NOW(), NOW()),
+('Shopify', 'SHOPIFY', 'Shopify e-ticaret platformu', true, true, NOW(), NOW()),
+('Amazon', 'AMAZON', 'Amazon e-ticaret platformu', true, true, NOW(), NOW()),
+('Trendyol', 'TRENDYOL', 'Trendyol e-ticaret platformu', true, true, NOW(), NOW());
 
--- Platform ürünleri (örnek)
-INSERT INTO platform_products (product_id, platform_id, platform_product_id, platform_sku, platform_stock_quantity, last_sync_at) VALUES
--- Gaming Laptop için platform ürünleri
-(1, 1, 'EBAY_LAP001', 'SKU-EBAY-LAP001', 10, CURRENT_TIMESTAMP),
-(1, 2, 'SHOPIFY_LAP001', 'SKU-SHOPIFY-LAP001', 10, CURRENT_TIMESTAMP),
-(1, 3, 'AMAZON_LAP001', 'SKU-AMAZON-LAP001', 10, CURRENT_TIMESTAMP),
-(1, 4, 'TRENDYOL_LAP001', 'SKU-TRENDYOL-LAP001', 10, CURRENT_TIMESTAMP),
+-- Malzeme kartları
+INSERT INTO material_cards (material_code, material_name, material_type, material_category, unit, current_stock, min_stock_level, max_stock_level, reorder_point, reorder_quantity, standard_cost, average_cost, last_purchase_cost, description, is_active, is_obsolete, created_at, updated_at) VALUES
+('MAT001', 'Ana Kart', 'FINISHED_PRODUCT', 'ELECTRONICS', 'ADET', 100.00, 10.00, 200.00, 20.00, 50.00, 150.00, 145.00, 140.00, 'Ana bilgisayar kartı', true, false, NOW(), NOW()),
+('MAT002', 'İşlemci', 'COMPONENT', 'ELECTRONICS', 'ADET', 50.00, 5.00, 100.00, 10.00, 25.00, 300.00, 295.00, 290.00, 'Merkezi işlem birimi', true, false, NOW(), NOW()),
+('MAT003', 'RAM', 'COMPONENT', 'ELECTRONICS', 'ADET', 200.00, 20.00, 500.00, 50.00, 100.00, 80.00, 78.00, 75.00, 'Bellek modülü', true, false, NOW(), NOW()),
+('MAT004', 'Hard Disk', 'COMPONENT', 'ELECTRONICS', 'ADET', 75.00, 10.00, 150.00, 20.00, 50.00, 120.00, 118.00, 115.00, 'Sabit disk', true, false, NOW(), NOW()),
+('MAT005', 'Güç Kaynağı', 'COMPONENT', 'ELECTRONICS', 'ADET', 60.00, 5.00, 120.00, 15.00, 30.00, 90.00, 88.00, 85.00, 'Güç kaynağı ünitesi', true, false, NOW(), NOW());
 
--- Akıllı Telefon için platform ürünleri
-(2, 1, 'EBAY_PHN001', 'SKU-EBAY-PHN001', 25, CURRENT_TIMESTAMP),
-(2, 2, 'SHOPIFY_PHN001', 'SKU-SHOPIFY-PHN001', 25, CURRENT_TIMESTAMP),
-(2, 3, 'AMAZON_PHN001', 'SKU-AMAZON-PHN001', 25, CURRENT_TIMESTAMP),
-(2, 4, 'TRENDYOL_PHN001', 'SKU-TRENDYOL-PHN001', 25, CURRENT_TIMESTAMP),
+-- BOM (Ürün Ağacı)
+INSERT INTO bill_of_materials (parent_material_id, component_material_id, quantity, unit, is_active, created_at, updated_at) VALUES
+(1, 2, 1.00, 'ADET', true, NOW(), NOW()),  -- Ana Kart -> İşlemci
+(1, 3, 2.00, 'ADET', true, NOW(), NOW()),  -- Ana Kart -> RAM
+(1, 4, 1.00, 'ADET', true, NOW(), NOW()),  -- Ana Kart -> Hard Disk
+(1, 5, 1.00, 'ADET', true, NOW(), NOW());  -- Ana Kart -> Güç Kaynağı
 
--- Kablosuz Kulaklık için platform ürünleri
-(3, 1, 'EBAY_EAR001', 'SKU-EBAY-EAR001', 50, CURRENT_TIMESTAMP),
-(3, 2, 'SHOPIFY_EAR001', 'SKU-SHOPIFY-EAR001', 50, CURRENT_TIMESTAMP),
-(3, 3, 'AMAZON_EAR001', 'SKU-AMAZON-EAR001', 50, CURRENT_TIMESTAMP),
-(3, 4, 'TRENDYOL_EAR001', 'SKU-TRENDYOL-EAR001', 50, CURRENT_TIMESTAMP);
+-- Platform ürünleri
+INSERT INTO platform_products (platform_id, product_id, platform_product_id, platform_sku, platform_title, platform_description, platform_price, platform_stock_quantity, is_active, last_sync_at, created_at, updated_at) VALUES
+(1, 1, 'EBAY001', 'EBAY-ANA-KART-001', 'Ana Bilgisayar Kartı', 'Yüksek performanslı ana kart', 250.00, 100, true, NOW(), NOW(), NOW()),
+(2, 1, 'SHOP001', 'SHOP-ANA-KART-001', 'Ana Bilgisayar Kartı', 'Yüksek performanslı ana kart', 250.00, 100, true, NOW(), NOW(), NOW()),
+(3, 1, 'AMZ001', 'AMZ-ANA-KART-001', 'Ana Bilgisayar Kartı', 'Yüksek performanslı ana kart', 250.00, 100, true, NOW(), NOW(), NOW()),
+(4, 1, 'TRD001', 'TRD-ANA-KART-001', 'Ana Bilgisayar Kartı', 'Yüksek performanslı ana kart', 250.00, 100, true, NOW(), NOW(), NOW());
 
--- Örnek siparişler
-INSERT INTO orders (platform_order_id, platform_id, order_date, total_amount, status, customer_email, shipping_address) VALUES
-('EBAY-ORDER-001', 1, CURRENT_TIMESTAMP, 45000.00, 'COMPLETED', 'customer1@example.com', '123 Main St, İstanbul'),
-('SHOPIFY-ORDER-002', 2, CURRENT_TIMESTAMP, 25000.00, 'PENDING', 'customer2@example.com', '456 Oak Ave, Ankara'),
-('AMAZON-ORDER-003', 3, CURRENT_TIMESTAMP, 1500.00, 'COMPLETED', 'customer3@example.com', '789 Pine St, İzmir'),
-('TRENDYOL-ORDER-004', 4, CURRENT_TIMESTAMP, 500.00, 'CANCELLED', 'customer4@example.com', '321 Elm St, Bursa');
+-- Siparişler
+INSERT INTO orders (platform_id, order_number, customer_name, customer_email, order_date, status, total_amount, currency, created_at, updated_at) VALUES
+(1, 'EBAY-001', 'Ahmet Yılmaz', 'ahmet@email.com', NOW(), 'PENDING', 250.00, 'TRY', NOW(), NOW()),
+(2, 'SHOP-001', 'Ayşe Demir', 'ayse@email.com', NOW(), 'CONFIRMED', 250.00, 'TRY', NOW(), NOW()),
+(3, 'AMZ-001', 'Mehmet Kaya', 'mehmet@email.com', NOW(), 'SHIPPED', 250.00, 'TRY', NOW(), NOW()),
+(4, 'TRD-001', 'Fatma Öz', 'fatma@email.com', NOW(), 'DELIVERED', 250.00, 'TRY', NOW(), NOW());
 
--- Sipariş kalemleri
-INSERT INTO order_items (order_id, product_id, quantity, unit_price) VALUES
-(1, 1, 1, 45000.00),
-(2, 2, 1, 25000.00),
-(3, 3, 1, 1500.00),
-(4, 4, 1, 500.00);
+-- Sipariş detayları
+INSERT INTO order_items (order_id, product_id, quantity, unit_price, total_price, created_at, updated_at) VALUES
+(1, 1, 1, 250.00, 250.00, NOW(), NOW()),
+(2, 1, 1, 250.00, 250.00, NOW(), NOW()),
+(3, 1, 1, 250.00, 250.00, NOW(), NOW()),
+(4, 1, 1, 250.00, 250.00, NOW(), NOW());
 
--- Senkronizasyon logları (örnek)
-INSERT INTO sync_logs (product_id, platform_id, sync_type, status, message, sync_date) VALUES
-(1, 1, 'STOCK_UPDATE', 'SUCCESS', 'Stok başarıyla güncellendi', CURRENT_TIMESTAMP),
-(1, 2, 'STOCK_UPDATE', 'SUCCESS', 'Stok başarıyla güncellendi', CURRENT_TIMESTAMP),
-(2, 1, 'STOCK_UPDATE', 'SUCCESS', 'Stok başarıyla güncellendi', CURRENT_TIMESTAMP),
-(2, 2, 'STOCK_UPDATE', 'FAILED', 'API bağlantı hatası', CURRENT_TIMESTAMP),
-(3, 1, 'PRODUCT_CREATE', 'SUCCESS', 'Ürün başarıyla oluşturuldu', CURRENT_TIMESTAMP),
-(3, 2, 'PRODUCT_CREATE', 'PENDING', 'Ürün oluşturma bekleniyor', CURRENT_TIMESTAMP);
+-- Stok hareketleri
+INSERT INTO material_stock_movements (material_id, movement_type, quantity, movement_date, description, created_at, updated_at) VALUES
+(1, 'INITIAL_STOCK', 100.00, NOW(), 'Başlangıç stoku', NOW(), NOW()),
+(2, 'INITIAL_STOCK', 50.00, NOW(), 'Başlangıç stoku', NOW(), NOW()),
+(3, 'INITIAL_STOCK', 200.00, NOW(), 'Başlangıç stoku', NOW(), NOW()),
+(4, 'INITIAL_STOCK', 75.00, NOW(), 'Başlangıç stoku', NOW(), NOW()),
+(5, 'INITIAL_STOCK', 60.00, NOW(), 'Başlangıç stoku', NOW(), NOW());
 
--- Ek kullanıcılar (demo için)
-INSERT INTO users (username, email, password, first_name, last_name, is_active, email_verified, created_by) VALUES
-('manager', 'manager@stoktakip.com', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVEFDi', 'Manager', 'User', TRUE, TRUE, 1),
-('viewer', 'viewer@stoktakip.com', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVEFDi', 'Viewer', 'User', TRUE, TRUE, 1);
-
--- Kullanıcı rolleri
-INSERT INTO user_roles (user_id, role) VALUES
-(2, 'OPERATOR'),
-(3, 'MANAGER'),
-(4, 'VIEWER');
+-- Senkronizasyon logları
+INSERT INTO sync_logs (platform_id, sync_type, status, message, sync_date, created_at, updated_at) VALUES
+(1, 'STOCK_SYNC', 'SUCCESS', 'Stok senkronizasyonu başarılı', NOW(), NOW(), NOW()),
+(2, 'STOCK_SYNC', 'SUCCESS', 'Stok senkronizasyonu başarılı', NOW(), NOW(), NOW()),
+(3, 'STOCK_SYNC', 'SUCCESS', 'Stok senkronizasyonu başarılı', NOW(), NOW(), NOW()),
+(4, 'STOCK_SYNC', 'SUCCESS', 'Stok senkronizasyonu başarılı', NOW(), NOW(), NOW());

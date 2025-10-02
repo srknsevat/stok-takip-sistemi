@@ -17,38 +17,42 @@ public interface UserRepository extends JpaRepository<User, Long> {
     
     Optional<User> findByEmail(String email);
     
-    Optional<User> findByUsernameOrEmail(String username, String email);
+    Optional<User> findByUsernameAndIsActiveTrue(String username);
+    
+    Optional<User> findByEmailAndIsActiveTrue(String email);
     
     List<User> findByIsActiveTrue();
     
-    List<User> findByEmailVerifiedTrue();
+    List<User> findByIsActiveFalse();
     
-    List<User> findByRolesContaining(User.Role role);
+    List<User> findByRole(User.UserRole role);
     
-    @Query("SELECT u FROM User u WHERE u.isActive = true AND u.emailVerified = true")
-    List<User> findActiveAndVerifiedUsers();
+    List<User> findByRoleAndIsActiveTrue(User.UserRole role);
     
-    @Query("SELECT u FROM User u WHERE u.failedLoginAttempts >= 5 AND u.lockedUntil > :now")
-    List<User> findLockedUsers(@Param("now") LocalDateTime now);
+    List<User> findByFirstNameContainingIgnoreCase(String firstName);
     
-    @Query("SELECT u FROM User u WHERE u.lastLogin < :beforeDate")
-    List<User> findInactiveUsers(@Param("beforeDate") LocalDateTime beforeDate);
+    List<User> findByLastNameContainingIgnoreCase(String lastName);
     
-    @Query("SELECT u FROM User u WHERE u.passwordResetToken = :token AND u.passwordResetExpires > :now")
-    Optional<User> findByPasswordResetToken(@Param("token") String token, @Param("now") LocalDateTime now);
+    List<User> findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCase(String firstName, String lastName);
     
-    @Query("SELECT u FROM User u WHERE u.emailVerificationToken = :token")
-    Optional<User> findByEmailVerificationToken(@Param("token") String token);
+    @Query("SELECT u FROM User u WHERE u.isActive = true AND u.lastLoginAt < :date")
+    List<User> findInactiveUsers(@Param("date") LocalDateTime date);
+    
+    @Query("SELECT u FROM User u WHERE u.isActive = true AND u.lastLoginAt IS NULL")
+    List<User> findUsersNeverLoggedIn();
     
     @Query("SELECT COUNT(u) FROM User u WHERE u.isActive = true")
-    long countActiveUsers();
+    Long countActiveUsers();
     
-    @Query("SELECT COUNT(u) FROM User u WHERE u.roles = :role")
-    long countByRole(@Param("role") User.Role role);
+    @Query("SELECT COUNT(u) FROM User u WHERE u.role = :role")
+    Long countByRole(@Param("role") User.UserRole role);
     
-    @Query("SELECT u FROM User u WHERE u.createdBy = :createdBy")
-    List<User> findByCreatedBy(@Param("createdBy") Long createdBy);
+    @Query("SELECT COUNT(u) FROM User u WHERE u.isActive = true AND u.role = :role")
+    Long countActiveByRole(@Param("role") User.UserRole role);
     
-    @Query("SELECT u FROM User u WHERE u.username LIKE %:search% OR u.email LIKE %:search% OR u.firstName LIKE %:search% OR u.lastName LIKE %:search%")
-    List<User> findBySearchTerm(@Param("search") String search);
+    @Query("SELECT u FROM User u WHERE u.isActive = true ORDER BY u.lastLoginAt DESC")
+    List<User> findActiveUsersOrderByLastLogin();
+    
+    @Query("SELECT u FROM User u WHERE u.isActive = true ORDER BY u.createdAt DESC")
+    List<User> findActiveUsersOrderByCreatedAt();
 }
