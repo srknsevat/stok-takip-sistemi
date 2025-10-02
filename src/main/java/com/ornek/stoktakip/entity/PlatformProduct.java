@@ -1,14 +1,11 @@
 package com.ornek.stoktakip.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "platform_products", 
-       uniqueConstraints = @UniqueConstraint(columnNames = {"product_id", "platform_id"}))
+@Table(name = "platform_products")
 public class PlatformProduct {
     
     @Id
@@ -16,45 +13,69 @@ public class PlatformProduct {
     private Long id;
     
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "product_id", nullable = false)
-    @NotNull(message = "Ürün zorunludur")
-    private Product product;
-    
-    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "platform_id", nullable = false)
-    @NotNull(message = "Platform zorunludur")
     private Platform platform;
     
-    @NotBlank(message = "Platform ürün ID'si zorunludur")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id", nullable = false)
+    private MaterialCard product;
+    
     @Column(name = "platform_product_id", nullable = false)
-    private String platformProductId; // Platform'daki ürün ID'si
+    private String platformProductId;
     
     @Column(name = "platform_sku")
-    private String platformSku; // Platform'daki SKU
+    private String platformSku;
     
     @Column(name = "platform_title")
-    private String platformTitle; // Platform'daki ürün başlığı
+    private String platformTitle;
     
-    @Column(name = "platform_price", precision = 10, scale = 2)
-    private BigDecimal platformPrice; // Platform'daki fiyat
+    @Column(name = "platform_description", columnDefinition = "TEXT")
+    private String platformDescription;
+    
+    @Column(name = "platform_price")
+    private BigDecimal platformPrice;
     
     @Column(name = "platform_stock_quantity")
-    private Integer platformStockQuantity; // Platform'daki stok miktarı
+    private Integer platformStockQuantity = 0;
     
-    @Column(name = "is_active")
-    private Boolean isActive = true; // Platform'da aktif mi?
+    @Column(name = "platform_min_stock")
+    private Integer platformMinStock = 0;
+    
+    @Column(name = "platform_max_stock")
+    private Integer platformMaxStock = 1000;
+    
+    @Column(name = "platform_category")
+    private String platformCategory;
+    
+    @Column(name = "platform_brand")
+    private String platformBrand;
+    
+    @Column(name = "platform_condition")
+    private String platformCondition = "NEW";
+    
+    @Column(name = "platform_weight")
+    private BigDecimal platformWeight;
+    
+    @Column(name = "platform_dimensions")
+    private String platformDimensions;
+    
+    @Column(name = "platform_images", columnDefinition = "TEXT")
+    private String platformImages; // JSON array of image URLs
+    
+    @Column(name = "platform_tags")
+    private String platformTags;
+    
+    @Column(name = "platform_status")
+    private String platformStatus = "ACTIVE";
     
     @Column(name = "is_synced")
-    private Boolean isSynced = false; // Son senkronizasyon başarılı mı?
+    private Boolean isSynced = false;
     
     @Column(name = "last_sync_at")
     private LocalDateTime lastSyncAt;
     
-    @Column(name = "sync_error_message", columnDefinition = "TEXT")
-    private String syncErrorMessage;
-    
-    @Column(name = "retry_count")
-    private Integer retryCount = 0;
+    @Column(name = "sync_error", columnDefinition = "TEXT")
+    private String syncError;
     
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
@@ -77,130 +98,82 @@ public class PlatformProduct {
     // Constructors
     public PlatformProduct() {}
     
-    public PlatformProduct(Product product, Platform platform, String platformProductId) {
-        this.product = product;
+    public PlatformProduct(Platform platform, MaterialCard product, String platformProductId) {
         this.platform = platform;
+        this.product = product;
         this.platformProductId = platformProductId;
     }
     
     // Getters and Setters
-    public Long getId() {
-        return id;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
     
-    public void setId(Long id) {
-        this.id = id;
-    }
+    public Platform getPlatform() { return platform; }
+    public void setPlatform(Platform platform) { this.platform = platform; }
     
-    public Product getProduct() {
-        return product;
-    }
+    public MaterialCard getProduct() { return product; }
+    public void setProduct(MaterialCard product) { this.product = product; }
     
-    public void setProduct(Product product) {
-        this.product = product;
-    }
+    public String getPlatformProductId() { return platformProductId; }
+    public void setPlatformProductId(String platformProductId) { this.platformProductId = platformProductId; }
     
-    public Platform getPlatform() {
-        return platform;
-    }
+    public String getPlatformSku() { return platformSku; }
+    public void setPlatformSku(String platformSku) { this.platformSku = platformSku; }
     
-    public void setPlatform(Platform platform) {
-        this.platform = platform;
-    }
+    public String getPlatformTitle() { return platformTitle; }
+    public void setPlatformTitle(String platformTitle) { this.platformTitle = platformTitle; }
     
-    public String getPlatformProductId() {
-        return platformProductId;
-    }
+    public String getPlatformDescription() { return platformDescription; }
+    public void setPlatformDescription(String platformDescription) { this.platformDescription = platformDescription; }
     
-    public void setPlatformProductId(String platformProductId) {
-        this.platformProductId = platformProductId;
-    }
+    public BigDecimal getPlatformPrice() { return platformPrice; }
+    public void setPlatformPrice(BigDecimal platformPrice) { this.platformPrice = platformPrice; }
     
-    public String getPlatformSku() {
-        return platformSku;
-    }
+    public Integer getPlatformStockQuantity() { return platformStockQuantity; }
+    public void setPlatformStockQuantity(Integer platformStockQuantity) { this.platformStockQuantity = platformStockQuantity; }
     
-    public void setPlatformSku(String platformSku) {
-        this.platformSku = platformSku;
-    }
+    public Integer getPlatformMinStock() { return platformMinStock; }
+    public void setPlatformMinStock(Integer platformMinStock) { this.platformMinStock = platformMinStock; }
     
-    public String getPlatformTitle() {
-        return platformTitle;
-    }
+    public Integer getPlatformMaxStock() { return platformMaxStock; }
+    public void setPlatformMaxStock(Integer platformMaxStock) { this.platformMaxStock = platformMaxStock; }
     
-    public void setPlatformTitle(String platformTitle) {
-        this.platformTitle = platformTitle;
-    }
+    public String getPlatformCategory() { return platformCategory; }
+    public void setPlatformCategory(String platformCategory) { this.platformCategory = platformCategory; }
     
-    public BigDecimal getPlatformPrice() {
-        return platformPrice;
-    }
+    public String getPlatformBrand() { return platformBrand; }
+    public void setPlatformBrand(String platformBrand) { this.platformBrand = platformBrand; }
     
-    public void setPlatformPrice(BigDecimal platformPrice) {
-        this.platformPrice = platformPrice;
-    }
+    public String getPlatformCondition() { return platformCondition; }
+    public void setPlatformCondition(String platformCondition) { this.platformCondition = platformCondition; }
     
-    public Integer getPlatformStockQuantity() {
-        return platformStockQuantity;
-    }
+    public BigDecimal getPlatformWeight() { return platformWeight; }
+    public void setPlatformWeight(BigDecimal platformWeight) { this.platformWeight = platformWeight; }
     
-    public void setPlatformStockQuantity(Integer platformStockQuantity) {
-        this.platformStockQuantity = platformStockQuantity;
-    }
+    public String getPlatformDimensions() { return platformDimensions; }
+    public void setPlatformDimensions(String platformDimensions) { this.platformDimensions = platformDimensions; }
     
-    public Boolean getIsActive() {
-        return isActive;
-    }
+    public String getPlatformImages() { return platformImages; }
+    public void setPlatformImages(String platformImages) { this.platformImages = platformImages; }
     
-    public void setIsActive(Boolean isActive) {
-        this.isActive = isActive;
-    }
+    public String getPlatformTags() { return platformTags; }
+    public void setPlatformTags(String platformTags) { this.platformTags = platformTags; }
     
-    public Boolean getIsSynced() {
-        return isSynced;
-    }
+    public String getPlatformStatus() { return platformStatus; }
+    public void setPlatformStatus(String platformStatus) { this.platformStatus = platformStatus; }
     
-    public void setIsSynced(Boolean isSynced) {
-        this.isSynced = isSynced;
-    }
+    public Boolean getIsSynced() { return isSynced; }
+    public void setIsSynced(Boolean isSynced) { this.isSynced = isSynced; }
     
-    public LocalDateTime getLastSyncAt() {
-        return lastSyncAt;
-    }
+    public LocalDateTime getLastSyncAt() { return lastSyncAt; }
+    public void setLastSyncAt(LocalDateTime lastSyncAt) { this.lastSyncAt = lastSyncAt; }
     
-    public void setLastSyncAt(LocalDateTime lastSyncAt) {
-        this.lastSyncAt = lastSyncAt;
-    }
+    public String getSyncError() { return syncError; }
+    public void setSyncError(String syncError) { this.syncError = syncError; }
     
-    public String getSyncErrorMessage() {
-        return syncErrorMessage;
-    }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     
-    public void setSyncErrorMessage(String syncErrorMessage) {
-        this.syncErrorMessage = syncErrorMessage;
-    }
-    
-    public Integer getRetryCount() {
-        return retryCount;
-    }
-    
-    public void setRetryCount(Integer retryCount) {
-        this.retryCount = retryCount;
-    }
-    
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-    
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-    
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-    
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 }

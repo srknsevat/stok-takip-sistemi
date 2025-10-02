@@ -219,47 +219,6 @@ public class Platform {
         this.updatedAt = updatedAt;
     }
     
-    // Eksik getter/setter metodları
-    public String getApiEndpoint() {
-        return apiEndpoint;
-    }
-    
-    public void setApiEndpoint(String apiEndpoint) {
-        this.apiEndpoint = apiEndpoint;
-    }
-    
-    public String getWebhookUrl() {
-        return webhookUrl;
-    }
-    
-    public void setWebhookUrl(String webhookUrl) {
-        this.webhookUrl = webhookUrl;
-    }
-    
-    public String getAccessToken() {
-        return accessToken;
-    }
-    
-    public void setAccessToken(String accessToken) {
-        this.accessToken = accessToken;
-    }
-    
-    public String getRefreshToken() {
-        return refreshToken;
-    }
-    
-    public void setRefreshToken(String refreshToken) {
-        this.refreshToken = refreshToken;
-    }
-    
-    public LocalDateTime getTokenExpiresAt() {
-        return tokenExpiresAt;
-    }
-    
-    public void setTokenExpiresAt(LocalDateTime tokenExpiresAt) {
-        this.tokenExpiresAt = tokenExpiresAt;
-    }
-    
     public List<PlatformProduct> getPlatformProducts() {
         return platformProducts;
     }
@@ -274,5 +233,22 @@ public class Platform {
     
     public void setOrders(List<Order> orders) {
         this.orders = orders;
+    }
+    
+    // Platform name için getter/setter (name field'ı için)
+    public String getPlatformName() {
+        return name;
+    }
+    
+    public void setPlatformName(String platformName) {
+        this.name = platformName;
+    }
+    
+    public String getPlatformCode() {
+        return code;
+    }
+    
+    public void setPlatformCode(String platformCode) {
+        this.code = platformCode;
     }
 }

@@ -1,8 +1,6 @@
 package com.ornek.stoktakip.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -16,49 +14,29 @@ public class OrderItem {
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", nullable = false)
-    @NotNull(message = "Sipariş zorunludur")
     private Order order;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
-    @NotNull(message = "Ürün zorunludur")
-    private Product product;
+    private MaterialCard product;
     
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "platform_product_id")
-    private PlatformProduct platformProduct;
+    @Column(name = "quantity", nullable = false)
+    private BigDecimal quantity;
     
-    @NotNull(message = "Miktar zorunludur")
-    @Positive(message = "Miktar pozitif olmalıdır")
-    @Column(nullable = false)
-    private Integer quantity;
-    
-    @Column(name = "unit_price", precision = 10, scale = 2)
+    @Column(name = "unit_price", nullable = false)
     private BigDecimal unitPrice;
     
-    @Column(name = "total_price", precision = 10, scale = 2)
-    private BigDecimal totalPrice;
+    @Column(name = "total_amount", nullable = false)
+    private BigDecimal totalAmount;
     
-    @Column(name = "discount_amount", precision = 10, scale = 2)
+    @Column(name = "discount_amount")
     private BigDecimal discountAmount = BigDecimal.ZERO;
     
-    @Column(name = "tax_amount", precision = 10, scale = 2)
+    @Column(name = "tax_amount")
     private BigDecimal taxAmount = BigDecimal.ZERO;
     
-    @Column(name = "platform_item_id")
-    private String platformItemId; // Platform'daki item ID'si
-    
-    @Column(name = "platform_sku")
-    private String platformSku; // Platform'daki SKU
-    
-    @Column(name = "platform_title")
-    private String platformTitle; // Platform'daki ürün başlığı
-    
-    @Column(name = "is_processed")
-    private Boolean isProcessed = false; // Stok işlemi yapıldı mı?
-    
-    @Column(name = "processed_at")
-    private LocalDateTime processedAt;
+    @Column(name = "notes", columnDefinition = "TEXT")
+    private String notes;
     
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
@@ -71,170 +49,83 @@ public class OrderItem {
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
-        calculateTotalPrice();
+        calculateTotalAmount();
     }
     
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
-        calculateTotalPrice();
+        calculateTotalAmount();
     }
     
     // Constructors
     public OrderItem() {}
     
-    public OrderItem(Order order, Product product, Integer quantity, BigDecimal unitPrice) {
+    public OrderItem(Order order, MaterialCard product, BigDecimal quantity, BigDecimal unitPrice) {
         this.order = order;
         this.product = product;
         this.quantity = quantity;
         this.unitPrice = unitPrice;
-        calculateTotalPrice();
-    }
-    
-    // Business Methods
-    private void calculateTotalPrice() {
-        if (unitPrice != null && quantity != null) {
-            totalPrice = unitPrice.multiply(BigDecimal.valueOf(quantity));
-            if (discountAmount != null) {
-                totalPrice = totalPrice.subtract(discountAmount);
-            }
-            if (taxAmount != null) {
-                totalPrice = totalPrice.add(taxAmount);
-            }
-        }
-    }
-    
-    public void markAsProcessed() {
-        this.isProcessed = true;
-        this.processedAt = LocalDateTime.now();
+        calculateTotalAmount();
     }
     
     // Getters and Setters
-    public Long getId() {
-        return id;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
     
-    public void setId(Long id) {
-        this.id = id;
-    }
+    public Order getOrder() { return order; }
+    public void setOrder(Order order) { this.order = order; }
     
-    public Order getOrder() {
-        return order;
-    }
+    public MaterialCard getProduct() { return product; }
+    public void setProduct(MaterialCard product) { this.product = product; }
     
-    public void setOrder(Order order) {
-        this.order = order;
-    }
-    
-    public Product getProduct() {
-        return product;
-    }
-    
-    public void setProduct(Product product) {
-        this.product = product;
-    }
-    
-    public PlatformProduct getPlatformProduct() {
-        return platformProduct;
-    }
-    
-    public void setPlatformProduct(PlatformProduct platformProduct) {
-        this.platformProduct = platformProduct;
-    }
-    
-    public Integer getQuantity() {
-        return quantity;
-    }
-    
-    public void setQuantity(Integer quantity) {
+    public BigDecimal getQuantity() { return quantity; }
+    public void setQuantity(BigDecimal quantity) { 
         this.quantity = quantity;
+        calculateTotalAmount();
     }
     
-    public BigDecimal getUnitPrice() {
-        return unitPrice;
-    }
-    
-    public void setUnitPrice(BigDecimal unitPrice) {
+    public BigDecimal getUnitPrice() { return unitPrice; }
+    public void setUnitPrice(BigDecimal unitPrice) { 
         this.unitPrice = unitPrice;
+        calculateTotalAmount();
     }
     
-    public BigDecimal getTotalPrice() {
-        return totalPrice;
-    }
+    public BigDecimal getTotalAmount() { return totalAmount; }
+    public void setTotalAmount(BigDecimal totalAmount) { this.totalAmount = totalAmount; }
     
-    public void setTotalPrice(BigDecimal totalPrice) {
-        this.totalPrice = totalPrice;
-    }
-    
-    public BigDecimal getDiscountAmount() {
-        return discountAmount;
-    }
-    
-    public void setDiscountAmount(BigDecimal discountAmount) {
+    public BigDecimal getDiscountAmount() { return discountAmount; }
+    public void setDiscountAmount(BigDecimal discountAmount) { 
         this.discountAmount = discountAmount;
+        calculateTotalAmount();
     }
     
-    public BigDecimal getTaxAmount() {
-        return taxAmount;
-    }
-    
-    public void setTaxAmount(BigDecimal taxAmount) {
+    public BigDecimal getTaxAmount() { return taxAmount; }
+    public void setTaxAmount(BigDecimal taxAmount) { 
         this.taxAmount = taxAmount;
+        calculateTotalAmount();
     }
     
-    public String getPlatformItemId() {
-        return platformItemId;
-    }
+    public String getNotes() { return notes; }
+    public void setNotes(String notes) { this.notes = notes; }
     
-    public void setPlatformItemId(String platformItemId) {
-        this.platformItemId = platformItemId;
-    }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     
-    public String getPlatformSku() {
-        return platformSku;
-    }
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
     
-    public void setPlatformSku(String platformSku) {
-        this.platformSku = platformSku;
-    }
-    
-    public String getPlatformTitle() {
-        return platformTitle;
-    }
-    
-    public void setPlatformTitle(String platformTitle) {
-        this.platformTitle = platformTitle;
-    }
-    
-    public Boolean getIsProcessed() {
-        return isProcessed;
-    }
-    
-    public void setIsProcessed(Boolean isProcessed) {
-        this.isProcessed = isProcessed;
-    }
-    
-    public LocalDateTime getProcessedAt() {
-        return processedAt;
-    }
-    
-    public void setProcessedAt(LocalDateTime processedAt) {
-        this.processedAt = processedAt;
-    }
-    
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-    
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-    
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-    
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    // Helper methods
+    private void calculateTotalAmount() {
+        if (quantity != null && unitPrice != null) {
+            BigDecimal subtotal = quantity.multiply(unitPrice);
+            if (discountAmount != null) {
+                subtotal = subtotal.subtract(discountAmount);
+            }
+            if (taxAmount != null) {
+                subtotal = subtotal.add(taxAmount);
+            }
+            this.totalAmount = subtotal;
+        }
     }
 }

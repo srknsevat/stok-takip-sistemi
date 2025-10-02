@@ -6,29 +6,47 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface PlatformRepository extends JpaRepository<Platform, Long> {
     
-    Optional<Platform> findByCode(String code);
-    
-    Optional<Platform> findByName(String name);
-    
     List<Platform> findByIsActiveTrue();
+    
+    List<Platform> findByIsActiveFalse();
     
     List<Platform> findBySyncEnabledTrue();
     
-    @Query("SELECT p FROM Platform p WHERE p.isActive = true AND p.syncEnabled = true")
-    List<Platform> findActiveAndSyncEnabledPlatforms();
+    List<Platform> findBySyncEnabledFalse();
     
-    @Query("SELECT p FROM Platform p WHERE p.code = :code AND p.isActive = true")
-    Optional<Platform> findActiveByCode(@Param("code") String code);
+    List<Platform> findByCode(String code);
+    
+    List<Platform> findByNameContainingIgnoreCase(String name);
+    
+    Optional<Platform> findByCodeAndIsActiveTrue(String code);
+    
+    Optional<Platform> findByNameAndIsActiveTrue(String name);
+    
+    @Query("SELECT p FROM Platform p WHERE p.isActive = true AND p.syncEnabled = true")
+    List<Platform> findActiveAndSyncEnabled();
+    
+    @Query("SELECT p FROM Platform p WHERE p.isActive = true AND p.lastSyncAt IS NULL")
+    List<Platform> findActiveNeverSynced();
+    
+    @Query("SELECT p FROM Platform p WHERE p.isActive = true AND p.lastSyncAt < :date")
+    List<Platform> findActiveWithOldSync(@Param("date") LocalDateTime date);
+    
+    @Query("SELECT p FROM Platform p WHERE p.isActive = true AND p.tokenExpiresAt < :date")
+    List<Platform> findActiveWithExpiredTokens(@Param("date") LocalDateTime date);
     
     @Query("SELECT COUNT(p) FROM Platform p WHERE p.isActive = true")
-    long countActivePlatforms();
+    Long countActivePlatforms();
     
-    @Query("SELECT p FROM Platform p WHERE p.lastSyncAt IS NULL OR p.lastSyncAt < :beforeDate")
-    List<Platform> findPlatformsNeedingSync(@Param("beforeDate") java.time.LocalDateTime beforeDate);
+    @Query("SELECT COUNT(p) FROM Platform p WHERE p.isActive = true AND p.syncEnabled = true")
+    Long countActiveAndSyncEnabled();
+    
+    @Query("SELECT p FROM Platform p WHERE p.isActive = true AND p.syncEnabled = true AND (p.lastSyncAt IS NULL OR p.lastSyncAt < :date)")
+    List<Platform> findPlatformsNeedingSync(@Param("date") LocalDateTime date);
 }

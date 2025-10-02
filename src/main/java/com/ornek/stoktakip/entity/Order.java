@@ -1,8 +1,6 @@
 package com.ornek.stoktakip.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -15,14 +13,36 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @NotBlank(message = "Sipariş numarası zorunludur")
     @Column(name = "order_number", nullable = false, unique = true)
-    private String orderNumber; // Platform'daki sipariş numarası
+    private String orderNumber;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "platform_id", nullable = false)
-    @NotNull(message = "Platform zorunludur")
     private Platform platform;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id", nullable = false)
+    private MaterialCard product;
+    
+    @Column(name = "quantity", nullable = false)
+    private BigDecimal quantity;
+    
+    @Column(name = "unit_price", nullable = false)
+    private BigDecimal unitPrice;
+    
+    @Column(name = "total_amount", nullable = false)
+    private BigDecimal totalAmount;
+    
+    @Column(name = "currency", length = 3)
+    private String currency = "TRY";
+    
+    @Enumerated(EnumType.STRING)
+    @Column(name = "order_status", nullable = false)
+    private OrderStatus orderStatus = OrderStatus.PENDING;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(name = "order_type", nullable = false)
+    private OrderType orderType = OrderType.SALE;
     
     @Column(name = "customer_name")
     private String customerName;
@@ -39,43 +59,29 @@ public class Order {
     @Column(name = "billing_address", columnDefinition = "TEXT")
     private String billingAddress;
     
-    @Column(name = "total_amount", precision = 10, scale = 2)
-    private BigDecimal totalAmount;
-    
-    @Column(name = "currency", length = 3)
-    private String currency = "TRY";
-    
-    @Enumerated(EnumType.STRING)
-    @Column(name = "order_status", nullable = false)
-    private OrderStatus orderStatus = OrderStatus.PENDING;
-    
-    @Enumerated(EnumType.STRING)
-    @Column(name = "payment_status")
-    private PaymentStatus paymentStatus = PaymentStatus.PENDING;
+    @Column(name = "notes", columnDefinition = "TEXT")
+    private String notes;
     
     @Column(name = "platform_order_id")
-    private String platformOrderId; // Platform'daki orijinal sipariş ID'si
+    private String platformOrderId;
     
     @Column(name = "platform_order_url")
-    private String platformOrderUrl; // Platform'daki sipariş linki
+    private String platformOrderUrl;
     
     @Column(name = "order_date", nullable = false)
     private LocalDateTime orderDate;
     
-    @Column(name = "shipping_date")
-    private LocalDateTime shippingDate;
+    @Column(name = "shipped_date")
+    private LocalDateTime shippedDate;
     
-    @Column(name = "delivery_date")
-    private LocalDateTime deliveryDate;
+    @Column(name = "delivered_date")
+    private LocalDateTime deliveredDate;
     
-    @Column(name = "cancellation_date")
-    private LocalDateTime cancellationDate;
+    @Column(name = "cancelled_date")
+    private LocalDateTime cancelledDate;
     
-    @Column(name = "cancellation_reason", columnDefinition = "TEXT")
-    private String cancellationReason;
-    
-    @Column(name = "notes", columnDefinition = "TEXT")
-    private String notes;
+    @Column(name = "returned_date")
+    private LocalDateTime returnedDate;
     
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
@@ -86,6 +92,25 @@ public class Order {
     // İlişkiler
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<OrderItem> orderItems;
+    
+    // Enums
+    public enum OrderStatus {
+        PENDING,        // Beklemede
+        CONFIRMED,      // Onaylandı
+        PROCESSING,     // İşleniyor
+        SHIPPED,        // Kargoya verildi
+        DELIVERED,      // Teslim edildi
+        CANCELLED,      // İptal edildi
+        RETURNED,       // İade edildi
+        REFUNDED        // Para iadesi yapıldı
+    }
+    
+    public enum OrderType {
+        SALE,           // Satış
+        RETURN,         // İade
+        EXCHANGE,       // Değişim
+        REFUND          // Para iadesi
+    }
     
     // JPA Lifecycle Callbacks
     @PrePersist
@@ -102,236 +127,104 @@ public class Order {
         updatedAt = LocalDateTime.now();
     }
     
-    // Enums
-    public enum OrderStatus {
-        PENDING("Beklemede"),
-        CONFIRMED("Onaylandı"),
-        PROCESSING("İşleniyor"),
-        SHIPPED("Kargoya Verildi"),
-        DELIVERED("Teslim Edildi"),
-        CANCELLED("İptal Edildi"),
-        RETURNED("İade Edildi"),
-        REFUNDED("Para İadesi Yapıldı");
-        
-        private final String displayName;
-        
-        OrderStatus(String displayName) {
-            this.displayName = displayName;
-        }
-        
-        public String getDisplayName() {
-            return displayName;
-        }
-    }
-    
-    public enum PaymentStatus {
-        PENDING("Beklemede"),
-        PAID("Ödendi"),
-        PARTIALLY_PAID("Kısmen Ödendi"),
-        REFUNDED("Para İadesi Yapıldı"),
-        FAILED("Ödeme Başarısız");
-        
-        private final String displayName;
-        
-        PaymentStatus(String displayName) {
-            this.displayName = displayName;
-        }
-        
-        public String getDisplayName() {
-            return displayName;
-        }
-    }
-    
     // Constructors
     public Order() {}
     
-    public Order(String orderNumber, Platform platform) {
+    public Order(String orderNumber, Platform platform, MaterialCard product, BigDecimal quantity, BigDecimal unitPrice) {
         this.orderNumber = orderNumber;
         this.platform = platform;
+        this.product = product;
+        this.quantity = quantity;
+        this.unitPrice = unitPrice;
+        this.totalAmount = quantity.multiply(unitPrice);
     }
     
     // Getters and Setters
-    public Long getId() {
-        return id;
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    
+    public String getOrderNumber() { return orderNumber; }
+    public void setOrderNumber(String orderNumber) { this.orderNumber = orderNumber; }
+    
+    public Platform getPlatform() { return platform; }
+    public void setPlatform(Platform platform) { this.platform = platform; }
+    
+    public MaterialCard getProduct() { return product; }
+    public void setProduct(MaterialCard product) { this.product = product; }
+    
+    public BigDecimal getQuantity() { return quantity; }
+    public void setQuantity(BigDecimal quantity) { 
+        this.quantity = quantity;
+        if (unitPrice != null) {
+            this.totalAmount = quantity.multiply(unitPrice);
+        }
     }
     
-    public void setId(Long id) {
-        this.id = id;
+    public BigDecimal getUnitPrice() { return unitPrice; }
+    public void setUnitPrice(BigDecimal unitPrice) { 
+        this.unitPrice = unitPrice;
+        if (quantity != null) {
+            this.totalAmount = quantity.multiply(unitPrice);
+        }
     }
     
-    public String getOrderNumber() {
-        return orderNumber;
-    }
+    public BigDecimal getTotalAmount() { return totalAmount; }
+    public void setTotalAmount(BigDecimal totalAmount) { this.totalAmount = totalAmount; }
     
-    public void setOrderNumber(String orderNumber) {
-        this.orderNumber = orderNumber;
-    }
+    public String getCurrency() { return currency; }
+    public void setCurrency(String currency) { this.currency = currency; }
     
-    public Platform getPlatform() {
-        return platform;
-    }
+    public OrderStatus getOrderStatus() { return orderStatus; }
+    public void setOrderStatus(OrderStatus orderStatus) { this.orderStatus = orderStatus; }
     
-    public void setPlatform(Platform platform) {
-        this.platform = platform;
-    }
+    public OrderType getOrderType() { return orderType; }
+    public void setOrderType(OrderType orderType) { this.orderType = orderType; }
     
-    public String getCustomerName() {
-        return customerName;
-    }
+    public String getCustomerName() { return customerName; }
+    public void setCustomerName(String customerName) { this.customerName = customerName; }
     
-    public void setCustomerName(String customerName) {
-        this.customerName = customerName;
-    }
+    public String getCustomerEmail() { return customerEmail; }
+    public void setCustomerEmail(String customerEmail) { this.customerEmail = customerEmail; }
     
-    public String getCustomerEmail() {
-        return customerEmail;
-    }
+    public String getCustomerPhone() { return customerPhone; }
+    public void setCustomerPhone(String customerPhone) { this.customerPhone = customerPhone; }
     
-    public void setCustomerEmail(String customerEmail) {
-        this.customerEmail = customerEmail;
-    }
+    public String getShippingAddress() { return shippingAddress; }
+    public void setShippingAddress(String shippingAddress) { this.shippingAddress = shippingAddress; }
     
-    public String getCustomerPhone() {
-        return customerPhone;
-    }
+    public String getBillingAddress() { return billingAddress; }
+    public void setBillingAddress(String billingAddress) { this.billingAddress = billingAddress; }
     
-    public void setCustomerPhone(String customerPhone) {
-        this.customerPhone = customerPhone;
-    }
+    public String getNotes() { return notes; }
+    public void setNotes(String notes) { this.notes = notes; }
     
-    public String getShippingAddress() {
-        return shippingAddress;
-    }
+    public String getPlatformOrderId() { return platformOrderId; }
+    public void setPlatformOrderId(String platformOrderId) { this.platformOrderId = platformOrderId; }
     
-    public void setShippingAddress(String shippingAddress) {
-        this.shippingAddress = shippingAddress;
-    }
+    public String getPlatformOrderUrl() { return platformOrderUrl; }
+    public void setPlatformOrderUrl(String platformOrderUrl) { this.platformOrderUrl = platformOrderUrl; }
     
-    public String getBillingAddress() {
-        return billingAddress;
-    }
+    public LocalDateTime getOrderDate() { return orderDate; }
+    public void setOrderDate(LocalDateTime orderDate) { this.orderDate = orderDate; }
     
-    public void setBillingAddress(String billingAddress) {
-        this.billingAddress = billingAddress;
-    }
+    public LocalDateTime getShippedDate() { return shippedDate; }
+    public void setShippedDate(LocalDateTime shippedDate) { this.shippedDate = shippedDate; }
     
-    public BigDecimal getTotalAmount() {
-        return totalAmount;
-    }
+    public LocalDateTime getDeliveredDate() { return deliveredDate; }
+    public void setDeliveredDate(LocalDateTime deliveredDate) { this.deliveredDate = deliveredDate; }
     
-    public void setTotalAmount(BigDecimal totalAmount) {
-        this.totalAmount = totalAmount;
-    }
+    public LocalDateTime getCancelledDate() { return cancelledDate; }
+    public void setCancelledDate(LocalDateTime cancelledDate) { this.cancelledDate = cancelledDate; }
     
-    public String getCurrency() {
-        return currency;
-    }
+    public LocalDateTime getReturnedDate() { return returnedDate; }
+    public void setReturnedDate(LocalDateTime returnedDate) { this.returnedDate = returnedDate; }
     
-    public void setCurrency(String currency) {
-        this.currency = currency;
-    }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     
-    public OrderStatus getOrderStatus() {
-        return orderStatus;
-    }
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
     
-    public void setOrderStatus(OrderStatus orderStatus) {
-        this.orderStatus = orderStatus;
-    }
-    
-    public PaymentStatus getPaymentStatus() {
-        return paymentStatus;
-    }
-    
-    public void setPaymentStatus(PaymentStatus paymentStatus) {
-        this.paymentStatus = paymentStatus;
-    }
-    
-    public String getPlatformOrderId() {
-        return platformOrderId;
-    }
-    
-    public void setPlatformOrderId(String platformOrderId) {
-        this.platformOrderId = platformOrderId;
-    }
-    
-    public String getPlatformOrderUrl() {
-        return platformOrderUrl;
-    }
-    
-    public void setPlatformOrderUrl(String platformOrderUrl) {
-        this.platformOrderUrl = platformOrderUrl;
-    }
-    
-    public LocalDateTime getOrderDate() {
-        return orderDate;
-    }
-    
-    public void setOrderDate(LocalDateTime orderDate) {
-        this.orderDate = orderDate;
-    }
-    
-    public LocalDateTime getShippingDate() {
-        return shippingDate;
-    }
-    
-    public void setShippingDate(LocalDateTime shippingDate) {
-        this.shippingDate = shippingDate;
-    }
-    
-    public LocalDateTime getDeliveryDate() {
-        return deliveryDate;
-    }
-    
-    public void setDeliveryDate(LocalDateTime deliveryDate) {
-        this.deliveryDate = deliveryDate;
-    }
-    
-    public LocalDateTime getCancellationDate() {
-        return cancellationDate;
-    }
-    
-    public void setCancellationDate(LocalDateTime cancellationDate) {
-        this.cancellationDate = cancellationDate;
-    }
-    
-    public String getCancellationReason() {
-        return cancellationReason;
-    }
-    
-    public void setCancellationReason(String cancellationReason) {
-        this.cancellationReason = cancellationReason;
-    }
-    
-    public String getNotes() {
-        return notes;
-    }
-    
-    public void setNotes(String notes) {
-        this.notes = notes;
-    }
-    
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-    
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-    
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-    
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-    
-    public List<OrderItem> getOrderItems() {
-        return orderItems;
-    }
-    
-    public void setOrderItems(List<OrderItem> orderItems) {
-        this.orderItems = orderItems;
-    }
+    public List<OrderItem> getOrderItems() { return orderItems; }
+    public void setOrderItems(List<OrderItem> orderItems) { this.orderItems = orderItems; }
 }
