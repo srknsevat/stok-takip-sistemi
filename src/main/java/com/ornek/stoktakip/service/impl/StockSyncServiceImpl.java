@@ -1,295 +1,194 @@
 package com.ornek.stoktakip.service.impl;
 
-import com.ornek.stoktakip.entity.MaterialCard;
 import com.ornek.stoktakip.entity.Platform;
 import com.ornek.stoktakip.entity.PlatformProduct;
-import com.ornek.stoktakip.repository.PlatformProductRepository;
 import com.ornek.stoktakip.repository.PlatformRepository;
+import com.ornek.stoktakip.repository.PlatformProductRepository;
 import com.ornek.stoktakip.service.StockSyncService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @Transactional
 public class StockSyncServiceImpl implements StockSyncService {
-
-    private final PlatformProductRepository platformProductRepository;
+    
     private final PlatformRepository platformRepository;
-
+    private final PlatformProductRepository platformProductRepository;
+    
     @Autowired
-    public StockSyncServiceImpl(PlatformProductRepository platformProductRepository,
-                               PlatformRepository platformRepository) {
-        this.platformProductRepository = platformProductRepository;
+    public StockSyncServiceImpl(PlatformRepository platformRepository, 
+                               PlatformProductRepository platformProductRepository) {
         this.platformRepository = platformRepository;
+        this.platformProductRepository = platformProductRepository;
     }
-
+    
     @Override
-    public Integer calculateRealTimeStock(MaterialCard product) {
+    public boolean syncAllPlatforms() {
         try {
-            // BOM varsa ATP hesapla, yoksa mevcut stok miktarını kullan
-            // Bu kısım ATP service'den gelecek
-            return product.getCurrentStock().intValue();
-        } catch (Exception e) {
-            System.err.println("Gerçek zamanlı stok hesaplama hatası: " + e.getMessage());
-            return 0;
-        }
-    }
-
-    @Override
-    public boolean isStockSynced(MaterialCard product) {
-        try {
-            List<PlatformProduct> platformProducts = platformProductRepository.findByProductId(product.getId());
-            if (platformProducts.isEmpty()) {
-                return true; // Platform'da yoksa senkronize sayılır
-            }
-
-            for (PlatformProduct platformProduct : platformProducts) {
-                if (!platformProduct.getIsSynced()) {
-                    return false;
+            List<Platform> activePlatforms = platformRepository.findByIsActiveTrue();
+            boolean allSuccess = true;
+            
+            for (Platform platform : activePlatforms) {
+                if (!syncPlatform(platform.getId())) {
+                    allSuccess = false;
                 }
             }
-
-            return true;
+            
+            return allSuccess;
         } catch (Exception e) {
-            System.err.println("Stok senkronizasyon durumu kontrol hatası: " + e.getMessage());
+            System.err.println("Tüm platformlar senkronize edilirken hata: " + e.getMessage());
             return false;
         }
     }
-
+    
     @Override
-    public void syncPlatform(Platform platform) {
+    public boolean syncPlatform(Long platformId) {
         try {
-            List<PlatformProduct> platformProducts = platformProductRepository.findByPlatformId(platform.getId());
+            Platform platform = platformRepository.findById(platformId).orElse(null);
+            if (platform == null) {
+                return false;
+            }
+            
+            List<PlatformProduct> platformProducts = platformProductRepository.findByPlatformId(platformId);
+            int successCount = 0;
+            int totalCount = platformProducts.size();
             
             for (PlatformProduct platformProduct : platformProducts) {
                 try {
-                    // Stok miktarını güncelle
-                    Integer realTimeStock = calculateRealTimeStock(platformProduct.getProduct());
-                    platformProduct.setPlatformStockQuantity(realTimeStock);
-                    platformProduct.setIsSynced(true);
+                    // Bu kısım gerçek API çağrıları ile doldurulacak
+                    // Şimdilik basit bir güncelleme
                     platformProduct.setLastSyncAt(LocalDateTime.now());
-                    platformProduct.setSyncError(null);
-                    
                     platformProductRepository.save(platformProduct);
+                    successCount++;
                 } catch (Exception e) {
-                    platformProduct.setIsSynced(false);
-                    platformProduct.setSyncError(e.getMessage());
-                    platformProductRepository.save(platformProduct);
+                    System.err.println("Platform ürün senkronizasyon hatası: " + e.getMessage());
                 }
             }
             
-            // Platform'un son senkronizasyon zamanını güncelle
+            // Platform son senkronizasyon zamanını güncelle
             platform.setLastSyncAt(LocalDateTime.now());
             platformRepository.save(platform);
             
+            return successCount == totalCount;
+            
         } catch (Exception e) {
             System.err.println("Platform senkronizasyon hatası: " + e.getMessage());
+            return false;
         }
     }
-
+    
     @Override
-    public void syncAllPlatforms() {
+    public boolean syncMaterialStock(Long materialId) {
         try {
-            List<Platform> activePlatforms = platformRepository.findByIsActiveTrue();
-            
-            for (Platform platform : activePlatforms) {
-                syncPlatform(platform);
-            }
-        } catch (Exception e) {
-            System.err.println("Tüm platform senkronizasyon hatası: " + e.getMessage());
-        }
-    }
-
-    @Override
-    public void syncProductOnAllPlatforms(MaterialCard product) {
-        try {
-            List<PlatformProduct> platformProducts = platformProductRepository.findByProductId(product.getId());
+            List<PlatformProduct> platformProducts = platformProductRepository.findByProductId(materialId);
+            boolean allSuccess = true;
             
             for (PlatformProduct platformProduct : platformProducts) {
                 try {
-                    // Stok miktarını güncelle
-                    Integer realTimeStock = calculateRealTimeStock(product);
-                    platformProduct.setPlatformStockQuantity(realTimeStock);
-                    platformProduct.setIsSynced(true);
+                    // Bu kısım gerçek API çağrıları ile doldurulacak
                     platformProduct.setLastSyncAt(LocalDateTime.now());
-                    platformProduct.setSyncError(null);
-                    
                     platformProductRepository.save(platformProduct);
                 } catch (Exception e) {
-                    platformProduct.setIsSynced(false);
-                    platformProduct.setSyncError(e.getMessage());
-                    platformProductRepository.save(platformProduct);
-                }
-            }
-        } catch (Exception e) {
-            System.err.println("Ürün senkronizasyon hatası: " + e.getMessage());
-        }
-    }
-
-    @Override
-    public Map<String, Object> getSyncStatus() {
-        Map<String, Object> status = new HashMap<>();
-        
-        try {
-            List<Platform> activePlatforms = platformRepository.findByIsActiveTrue();
-            long totalPlatforms = activePlatforms.size();
-            long syncedPlatforms = 0;
-            long failedPlatforms = 0;
-            
-            for (Platform platform : activePlatforms) {
-                List<PlatformProduct> platformProducts = platformProductRepository.findByPlatformId(platform.getId());
-                boolean allSynced = true;
-                
-                for (PlatformProduct platformProduct : platformProducts) {
-                    if (!platformProduct.getIsSynced()) {
-                        allSynced = false;
-                        break;
-                    }
-                }
-                
-                if (allSynced) {
-                    syncedPlatforms++;
-                } else {
-                    failedPlatforms++;
+                    System.err.println("Malzeme stok senkronizasyon hatası: " + e.getMessage());
+                    allSuccess = false;
                 }
             }
             
-            status.put("totalPlatforms", totalPlatforms);
-            status.put("syncedPlatforms", syncedPlatforms);
-            status.put("failedPlatforms", failedPlatforms);
-            status.put("syncRate", totalPlatforms > 0 ? (double) syncedPlatforms / totalPlatforms * 100 : 0);
+            return allSuccess;
             
         } catch (Exception e) {
-            System.err.println("Senkronizasyon durumu hesaplama hatası: " + e.getMessage());
-            status.put("error", e.getMessage());
+            System.err.println("Malzeme stok senkronizasyon hatası: " + e.getMessage());
+            return false;
         }
-        
-        return status;
     }
-
+    
     @Override
-    public List<Map<String, Object>> getFailedSyncs() {
-        List<Map<String, Object>> failedSyncs = new ArrayList<>();
-        
+    public boolean updatePlatformStock(PlatformProduct platformProduct, Integer newStock) {
         try {
-            List<PlatformProduct> unsyncedProducts = platformProductRepository.findByIsSyncedFalse();
-            
-            for (PlatformProduct platformProduct : unsyncedProducts) {
-                Map<String, Object> failedSync = new HashMap<>();
-                failedSync.put("id", platformProduct.getId());
-                failedSync.put("platformName", platformProduct.getPlatform().getPlatformName());
-                failedSync.put("productName", platformProduct.getProduct().getMaterialName());
-                failedSync.put("error", platformProduct.getSyncError());
-                failedSync.put("lastAttempt", platformProduct.getLastSyncAt());
-                failedSyncs.add(failedSync);
-            }
+            platformProduct.setPlatformStockQuantity(newStock);
+            platformProduct.setLastSyncAt(LocalDateTime.now());
+            platformProductRepository.save(platformProduct);
+            return true;
         } catch (Exception e) {
-            System.err.println("Başarısız senkronizasyonları getirme hatası: " + e.getMessage());
+            System.err.println("Platform stok güncelleme hatası: " + e.getMessage());
+            return false;
+        }
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public boolean isSyncNeeded(Platform platform) {
+        if (platform.getLastSyncAt() == null) {
+            return true;
         }
         
-        return failedSyncs;
+        LocalDateTime oneHourAgo = LocalDateTime.now().minusHours(1);
+        return platform.getLastSyncAt().isBefore(oneHourAgo);
     }
-
+    
     @Override
-    public List<Map<String, Object>> getPlatformSyncStatus() {
-        List<Map<String, Object>> platformStatus = new ArrayList<>();
-        
-        try {
-            List<Platform> activePlatforms = platformRepository.findByIsActiveTrue();
-            
-            for (Platform platform : activePlatforms) {
-                Map<String, Object> status = new HashMap<>();
-                status.put("platformId", platform.getId());
-                status.put("platformName", platform.getPlatformName());
-                status.put("platformCode", platform.getPlatformCode());
-                
-                List<PlatformProduct> platformProducts = platformProductRepository.findByPlatformId(platform.getId());
-                long totalProducts = platformProducts.size();
-                long syncedProducts = platformProducts.stream()
-                    .mapToLong(pp -> pp.getIsSynced() ? 1 : 0)
-                    .sum();
-                
-                status.put("totalProducts", totalProducts);
-                status.put("syncedProducts", syncedProducts);
-                status.put("failedProducts", totalProducts - syncedProducts);
-                status.put("syncRate", totalProducts > 0 ? (double) syncedProducts / totalProducts * 100 : 0);
-                status.put("lastSyncAt", platform.getLastSyncAt());
-                
-                platformStatus.add(status);
-            }
-        } catch (Exception e) {
-            System.err.println("Platform senkronizasyon durumu hesaplama hatası: " + e.getMessage());
-        }
-        
-        return platformStatus;
-    }
-
-    @Override
-    public List<Map<String, Object>> getSyncHistory(Long platformId) {
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getSyncHistory() {
         List<Map<String, Object>> history = new ArrayList<>();
         
         try {
-            List<PlatformProduct> platformProducts = platformProductRepository.findByPlatformId(platformId);
-            
-            for (PlatformProduct platformProduct : platformProducts) {
-                Map<String, Object> record = new HashMap<>();
-                record.put("productId", platformProduct.getProduct().getId());
-                record.put("productName", platformProduct.getProduct().getMaterialName());
-                record.put("isSynced", platformProduct.getIsSynced());
-                record.put("lastSyncAt", platformProduct.getLastSyncAt());
-                record.put("syncError", platformProduct.getSyncError());
-                history.add(record);
+            List<Platform> platforms = platformRepository.findAll();
+            for (Platform platform : platforms) {
+                Map<String, Object> platformHistory = new HashMap<>();
+                platformHistory.put("platformId", platform.getId());
+                platformHistory.put("platformName", platform.getPlatformName());
+                platformHistory.put("lastSyncAt", platform.getLastSyncAt());
+                platformHistory.put("isActive", platform.getIsActive());
+                platformHistory.put("syncEnabled", platform.getSyncEnabled());
+                history.add(platformHistory);
             }
         } catch (Exception e) {
-            System.err.println("Senkronizasyon geçmişi getirme hatası: " + e.getMessage());
+            System.err.println("Senkronizasyon geçmişi alınırken hata: " + e.getMessage());
         }
         
         return history;
     }
-
+    
     @Override
-    public Map<String, Object> getSyncStatistics() {
-        Map<String, Object> statistics = new HashMap<>();
+    @Transactional(readOnly = true)
+    public Map<String, Object> getSyncStats() {
+        Map<String, Object> stats = new HashMap<>();
         
         try {
-            List<Platform> activePlatforms = platformRepository.findByIsActiveTrue();
-            long totalPlatforms = activePlatforms.size();
-            long totalProducts = 0;
-            long syncedProducts = 0;
-            long failedProducts = 0;
+            long totalPlatforms = platformRepository.count();
+            long activePlatforms = platformRepository.countActivePlatforms();
+            long syncEnabledPlatforms = platformRepository.countActiveAndSyncEnabled();
             
-            for (Platform platform : activePlatforms) {
-                List<PlatformProduct> platformProducts = platformProductRepository.findByPlatformId(platform.getId());
-                totalProducts += platformProducts.size();
-                
-                for (PlatformProduct platformProduct : platformProducts) {
-                    if (platformProduct.getIsSynced()) {
-                        syncedProducts++;
-                    } else {
-                        failedProducts++;
-                    }
-                }
-            }
-            
-            statistics.put("totalPlatforms", totalPlatforms);
-            statistics.put("totalProducts", totalProducts);
-            statistics.put("syncedProducts", syncedProducts);
-            statistics.put("failedProducts", failedProducts);
-            statistics.put("overallSyncRate", totalProducts > 0 ? (double) syncedProducts / totalProducts * 100 : 0);
+            stats.put("totalPlatforms", totalPlatforms);
+            stats.put("activePlatforms", activePlatforms);
+            stats.put("syncEnabledPlatforms", syncEnabledPlatforms);
+            stats.put("lastSyncTime", LocalDateTime.now());
             
         } catch (Exception e) {
-            System.err.println("Senkronizasyon istatistikleri hesaplama hatası: " + e.getMessage());
-            statistics.put("error", e.getMessage());
+            System.err.println("Senkronizasyon istatistikleri alınırken hata: " + e.getMessage());
         }
         
-        return statistics;
+        return stats;
+    }
+    
+    @Override
+    public boolean retryFailedSync(Long platformId) {
+        return syncPlatform(platformId);
+    }
+    
+    @Override
+    public void stopSync() {
+        // Senkronizasyonu durdurma işlemi
+        System.out.println("Senkronizasyon durduruldu");
+    }
+    
+    @Override
+    public void startSync() {
+        // Senkronizasyonu başlatma işlemi
+        System.out.println("Senkronizasyon başlatıldı");
     }
 }

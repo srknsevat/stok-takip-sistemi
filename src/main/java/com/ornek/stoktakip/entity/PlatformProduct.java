@@ -20,7 +20,7 @@ public class PlatformProduct {
     @JoinColumn(name = "product_id", nullable = false)
     private MaterialCard product;
     
-    @Column(name = "platform_product_id", nullable = false)
+    @Column(name = "platform_product_id")
     private String platformProductId;
     
     @Column(name = "platform_sku")
@@ -36,13 +36,10 @@ public class PlatformProduct {
     private BigDecimal platformPrice;
     
     @Column(name = "platform_stock_quantity")
-    private Integer platformStockQuantity = 0;
+    private Integer platformStockQuantity;
     
-    @Column(name = "platform_min_stock")
-    private Integer platformMinStock = 0;
-    
-    @Column(name = "platform_max_stock")
-    private Integer platformMaxStock = 1000;
+    @Column(name = "platform_currency", length = 3)
+    private String platformCurrency = "TRY";
     
     @Column(name = "platform_category")
     private String platformCategory;
@@ -60,13 +57,13 @@ public class PlatformProduct {
     private String platformDimensions;
     
     @Column(name = "platform_images", columnDefinition = "TEXT")
-    private String platformImages; // JSON array of image URLs
+    private String platformImages;
     
-    @Column(name = "platform_tags")
+    @Column(name = "platform_tags", columnDefinition = "TEXT")
     private String platformTags;
     
-    @Column(name = "platform_status")
-    private String platformStatus = "ACTIVE";
+    @Column(name = "is_active", nullable = false)
+    private Boolean isActive = true;
     
     @Column(name = "is_synced")
     private Boolean isSynced = false;
@@ -76,6 +73,9 @@ public class PlatformProduct {
     
     @Column(name = "sync_error", columnDefinition = "TEXT")
     private String syncError;
+    
+    @Column(name = "sync_attempts")
+    private Integer syncAttempts = 0;
     
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
@@ -98,10 +98,11 @@ public class PlatformProduct {
     // Constructors
     public PlatformProduct() {}
     
-    public PlatformProduct(Platform platform, MaterialCard product, String platformProductId) {
+    public PlatformProduct(Platform platform, MaterialCard product, String platformProductId, String platformSku) {
         this.platform = platform;
         this.product = product;
         this.platformProductId = platformProductId;
+        this.platformSku = platformSku;
     }
     
     // Getters and Setters
@@ -132,11 +133,8 @@ public class PlatformProduct {
     public Integer getPlatformStockQuantity() { return platformStockQuantity; }
     public void setPlatformStockQuantity(Integer platformStockQuantity) { this.platformStockQuantity = platformStockQuantity; }
     
-    public Integer getPlatformMinStock() { return platformMinStock; }
-    public void setPlatformMinStock(Integer platformMinStock) { this.platformMinStock = platformMinStock; }
-    
-    public Integer getPlatformMaxStock() { return platformMaxStock; }
-    public void setPlatformMaxStock(Integer platformMaxStock) { this.platformMaxStock = platformMaxStock; }
+    public String getPlatformCurrency() { return platformCurrency; }
+    public void setPlatformCurrency(String platformCurrency) { this.platformCurrency = platformCurrency; }
     
     public String getPlatformCategory() { return platformCategory; }
     public void setPlatformCategory(String platformCategory) { this.platformCategory = platformCategory; }
@@ -159,8 +157,8 @@ public class PlatformProduct {
     public String getPlatformTags() { return platformTags; }
     public void setPlatformTags(String platformTags) { this.platformTags = platformTags; }
     
-    public String getPlatformStatus() { return platformStatus; }
-    public void setPlatformStatus(String platformStatus) { this.platformStatus = platformStatus; }
+    public Boolean getIsActive() { return isActive; }
+    public void setIsActive(Boolean isActive) { this.isActive = isActive; }
     
     public Boolean getIsSynced() { return isSynced; }
     public void setIsSynced(Boolean isSynced) { this.isSynced = isSynced; }
@@ -170,6 +168,9 @@ public class PlatformProduct {
     
     public String getSyncError() { return syncError; }
     public void setSyncError(String syncError) { this.syncError = syncError; }
+    
+    public Integer getSyncAttempts() { return syncAttempts; }
+    public void setSyncAttempts(Integer syncAttempts) { this.syncAttempts = syncAttempts; }
     
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }

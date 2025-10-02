@@ -1,59 +1,59 @@
 package com.ornek.stoktakip.service;
 
-import com.ornek.stoktakip.entity.MaterialCard;
 import com.ornek.stoktakip.entity.Platform;
+import com.ornek.stoktakip.entity.PlatformProduct;
 import java.util.List;
 import java.util.Map;
 
 public interface StockSyncService {
     
     /**
-     * Gerçek zamanlı stok hesaplama
-     */
-    Integer calculateRealTimeStock(MaterialCard product);
-    
-    /**
-     * Stok senkronizasyon durumu kontrolü
-     */
-    boolean isStockSynced(MaterialCard product);
-    
-    /**
-     * Platform senkronizasyonu
-     */
-    void syncPlatform(Platform platform);
-    
-    /**
      * Tüm platformları senkronize et
      */
-    void syncAllPlatforms();
+    boolean syncAllPlatforms();
     
     /**
-     * Belirli bir ürünü tüm platformlarda senkronize et
+     * Belirli bir platformu senkronize et
      */
-    void syncProductOnAllPlatforms(MaterialCard product);
+    boolean syncPlatform(Long platformId);
     
     /**
-     * Senkronizasyon durumu raporu
+     * Belirli bir malzemenin tüm platformlardaki stoklarını senkronize et
      */
-    Map<String, Object> getSyncStatus();
+    boolean syncMaterialStock(Long materialId);
     
     /**
-     * Başarısız senkronizasyonları getir
+     * Platform stok güncelleme
      */
-    List<Map<String, Object>> getFailedSyncs();
+    boolean updatePlatformStock(PlatformProduct platformProduct, Integer newStock);
     
     /**
-     * Platform senkronizasyon durumları
+     * Senkronizasyon durumunu kontrol et
      */
-    List<Map<String, Object>> getPlatformSyncStatus();
+    boolean isSyncNeeded(Platform platform);
     
     /**
-     * Senkronizasyon geçmişi
+     * Senkronizasyon geçmişini al
      */
-    List<Map<String, Object>> getSyncHistory(Long platformId);
+    List<Map<String, Object>> getSyncHistory();
     
     /**
-     * Senkronizasyon istatistikleri
+     * Senkronizasyon istatistiklerini al
      */
-    Map<String, Object> getSyncStatistics();
+    Map<String, Object> getSyncStats();
+    
+    /**
+     * Hata durumunda senkronizasyonu yeniden dene
+     */
+    boolean retryFailedSync(Long platformId);
+    
+    /**
+     * Senkronizasyonu durdur
+     */
+    void stopSync();
+    
+    /**
+     * Senkronizasyonu başlat
+     */
+    void startSync();
 }
