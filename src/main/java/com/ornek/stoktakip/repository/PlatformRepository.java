@@ -49,4 +49,11 @@ public interface PlatformRepository extends JpaRepository<Platform, Long> {
     
     @Query("SELECT p FROM Platform p WHERE p.isActive = true AND p.syncEnabled = true AND (p.lastSyncAt IS NULL OR p.lastSyncAt < :date)")
     List<Platform> findPlatformsNeedingSync(@Param("date") LocalDateTime date);
+    
+    // Dashboard için ek metodlar
+    @Query("SELECT p FROM Platform p WHERE p.isActive = true ORDER BY p.lastSyncAt DESC")
+    List<Platform> findActivePlatformsOrderByLastSync();
+    
+    @Query("SELECT p FROM Platform p WHERE p.isActive = true AND p.syncEnabled = true ORDER BY p.lastSyncAt ASC")
+    List<Platform> findSyncEnabledPlatformsOrderByLastSync();
 }

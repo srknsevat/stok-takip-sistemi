@@ -2,6 +2,7 @@ package com.ornek.stoktakip.service;
 
 import com.ornek.stoktakip.entity.Platform;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public interface PlatformService {
@@ -33,4 +34,16 @@ public interface PlatformService {
     boolean testPlatformConnection(Long platformId);
     
     void updateLastSyncTime(Long platformId);
+    
+    // Dashboard için ek metodlar
+    List<Platform> getPlatformsNeedingSync();
+    
+    long countActivePlatforms();
+    
+    // Stok güncelleme metodları
+    boolean updatePlatformStock(Long platformId);
+    
+    boolean updateAllPlatformStocks();
+    
+    Map<String, Object> getPlatformStockUpdates(Long platformId);
 }

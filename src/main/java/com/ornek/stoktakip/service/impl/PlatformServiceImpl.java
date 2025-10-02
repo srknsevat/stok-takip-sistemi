@@ -9,7 +9,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -144,5 +146,69 @@ public class PlatformServiceImpl implements PlatformService {
                     platform.setLastSyncAt(LocalDateTime.now());
                     platformRepository.save(platform);
                 });
+    }
+    
+    // Dashboard için ek metodlar
+    @Override
+    public boolean updatePlatformStock(Long platformId) {
+        try {
+            Platform platform = platformRepository.findById(platformId).orElse(null);
+            if (platform == null) {
+                return false;
+            }
+            
+            // Bu kısım StockSyncService'den gelecek
+            // Şimdilik basit bir güncelleme
+            platform.setLastSyncAt(LocalDateTime.now());
+            platformRepository.save(platform);
+            
+            return true;
+        } catch (Exception e) {
+            System.err.println("Platform stok güncelleme hatası: " + e.getMessage());
+            return false;
+        }
+    }
+    
+    @Override
+    public boolean updateAllPlatformStocks() {
+        try {
+            List<Platform> activePlatforms = platformRepository.findByIsActiveTrue();
+            boolean allSuccess = true;
+            
+            for (Platform platform : activePlatforms) {
+                if (!updatePlatformStock(platform.getId())) {
+                    allSuccess = false;
+                }
+            }
+            
+            return allSuccess;
+        } catch (Exception e) {
+            System.err.println("Tüm platform stokları güncellenirken hata: " + e.getMessage());
+            return false;
+        }
+    }
+    
+    @Override
+    public Map<String, Object> getPlatformStockUpdates(Long platformId) {
+        Map<String, Object> updates = new HashMap<>();
+        
+        try {
+            Platform platform = platformRepository.findById(platformId).orElse(null);
+            if (platform == null) {
+                updates.put("error", "Platform bulunamadı");
+                return updates;
+            }
+            
+            updates.put("platformId", platformId);
+            updates.put("platformName", platform.getPlatformName());
+            updates.put("lastSyncAt", platform.getLastSyncAt());
+            updates.put("syncEnabled", platform.getSyncEnabled());
+            updates.put("isActive", platform.getIsActive());
+            
+        } catch (Exception e) {
+            updates.put("error", e.getMessage());
+        }
+        
+        return updates;
     }
 }
