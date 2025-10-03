@@ -290,4 +290,9 @@ public class PlatformTestServiceImpl implements PlatformTestService {
         // Trendyol API endpoint kontrolü
         return platform.getApiEndpoint().contains("trendyol.com");
     }
+    
+    @Override
+    public boolean testPlatformConnection(Platform platform) {
+        return testConnection(platform);
+    }
 }

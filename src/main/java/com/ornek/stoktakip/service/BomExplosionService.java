@@ -10,6 +10,11 @@ public interface BomExplosionService {
 	 * Verilen ana malzemenin BOM'unu patlatır ve birim (1) üretim için alt parça gereksinimlerini döner.
 	 */
 	Map<String, BomExplosionResult> explodeBOM(Long parentMaterialId, BigDecimal parentQuantity);
+	
+	/**
+	 * Verilen ana malzemenin BOM'unu patlatır (double parametre ile)
+	 */
+	Map<Long, Double> explodeBom(Long parentMaterialId, double parentQuantity);
 
 	class BomExplosionResult {
 		private final MaterialCard material;

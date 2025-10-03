@@ -39,4 +39,7 @@ public interface PlatformTestService {
      * Platform güvenliğini test et
      */
     Map<String, Object> testSecurity(Long platformId);
+    
+    // Eksik metodlar
+    boolean testPlatformConnection(Platform platform);
 }
