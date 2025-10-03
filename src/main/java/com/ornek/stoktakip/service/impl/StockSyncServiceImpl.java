@@ -191,4 +191,29 @@ public class StockSyncServiceImpl implements StockSyncService {
         // Senkronizasyonu başlatma işlemi
         System.out.println("Senkronizasyon başlatıldı");
     }
+    
+    @Override
+    public void retryFailedSyncs() {
+        // Başarısız senkronizasyonları tekrar dene
+        List<PlatformProduct> failedProducts = platformProductRepository.findByIsSyncedFalse();
+        for (PlatformProduct product : failedProducts) {
+            try {
+                syncPlatform(product.getPlatform().getId());
+            } catch (Exception e) {
+                System.err.println("Senkronizasyon hatası: " + e.getMessage());
+            }
+        }
+    }
+    
+    @Override
+    public void checkStockConsistency() {
+        // Stok tutarlılığını kontrol et
+        List<PlatformProduct> allProducts = platformProductRepository.findAll();
+        for (PlatformProduct product : allProducts) {
+            // Stok tutarlılığı kontrolü
+            if (product.getPlatformStockQuantity() != product.getProduct().getStockQuantity()) {
+                System.out.println("Stok tutarsızlığı tespit edildi: " + product.getProduct().getName());
+            }
+        }
+    }
 }

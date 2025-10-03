@@ -307,8 +307,8 @@ public class OrderProcessingServiceImpl implements OrderProcessingService {
         if (material != null) {
             MaterialStockMovement movement = new MaterialStockMovement();
             movement.setMaterialCard(material);
-            movement.setMovementType(movementType);
-            movement.setQuantity(quantity);
+            movement.setMovementType(MaterialStockMovement.MovementType.valueOf(movementType));
+            movement.setQuantity(BigDecimal.valueOf(quantity));
             movement.setMovementDate(LocalDateTime.now());
             movement.setDescription(description);
             
@@ -583,5 +583,38 @@ public class OrderProcessingServiceImpl implements OrderProcessingService {
         }
         
         return result;
+    }
+    
+    @Override
+    public OrderProcessingReport generateOrderProcessingReport(Order order) {
+        OrderProcessingReport report = new OrderProcessingReport(order, "DETAILED");
+        
+        // Stok kontrolü
+        OrderStockCheckResult stockCheck = checkOrderStock(order);
+        report.setStockCheck(stockCheck);
+        
+        // Maliyet analizi
+        OrderCostResult costAnalysis = calculateOrderCost(order);
+        report.setCostAnalysis(costAnalysis);
+        
+        // Öneriler
+        List<String> recommendations = new ArrayList<>();
+        if (!stockCheck.isStockAvailable()) {
+            recommendations.add("Stok yetersiz - tedarik planlaması yapın");
+        }
+        if (costAnalysis.getProfitMargin().compareTo(BigDecimal.valueOf(10)) < 0) {
+            recommendations.add("Kar marjı düşük - fiyat gözden geçirin");
+        }
+        report.setRecommendations(recommendations);
+        
+        // İşlem metrikleri
+        Map<String, Object> metrics = new HashMap<>();
+        metrics.put("totalItems", order.getOrderItems().size());
+        metrics.put("totalValue", order.getTotalAmount());
+        metrics.put("processingTime", LocalDateTime.now());
+        report.setProcessingMetrics(metrics);
+        
+        report.setStatus("COMPLETED");
+        return report;
     }
 }

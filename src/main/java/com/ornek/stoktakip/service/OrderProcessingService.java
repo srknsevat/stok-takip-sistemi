@@ -115,6 +115,9 @@ public interface OrderProcessingService {
      */
     OrderProcessingResult processOrderWithBOM(Order order);
     
+    // Eksik metodlar
+    OrderProcessingReport generateOrderProcessingReport(Order order);
+    
     /**
      * Sipariş üretim planı sınıfı
      */

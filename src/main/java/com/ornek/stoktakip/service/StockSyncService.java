@@ -56,4 +56,8 @@ public interface StockSyncService {
      * Senkronizasyonu başlat
      */
     void startSync();
+    
+    // Eksik metodlar
+    void retryFailedSyncs();
+    void checkStockConsistency();
 }
