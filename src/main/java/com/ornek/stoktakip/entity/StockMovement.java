@@ -11,8 +11,8 @@ public class StockMovement {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "product_id", nullable = false)
-    private Product product;
+    @JoinColumn(name = "material_id", nullable = false)
+    private MaterialCard material;
 
     @Column(nullable = false)
     private Integer quantity; // Pozitif değerler giriş, negatif değerler çıkış
@@ -22,6 +22,9 @@ public class StockMovement {
 
     @Column(nullable = false)
     private String movementType; // "ENTRY" veya "EXIT"
+    
+    @Column(columnDefinition = "TEXT")
+    private String description;
 
     // Getter ve Setter metodları
     public Long getId() {
@@ -32,12 +35,12 @@ public class StockMovement {
         this.id = id;
     }
 
-    public Product getProduct() {
-        return product;
+    public MaterialCard getMaterial() {
+        return material;
     }
 
-    public void setProduct(Product product) {
-        this.product = product;
+    public void setMaterial(MaterialCard material) {
+        this.material = material;
     }
 
     public Integer getQuantity() {
@@ -62,5 +65,13 @@ public class StockMovement {
 
     public void setMovementType(String movementType) {
         this.movementType = movementType;
+    }
+    
+    public String getDescription() {
+        return description;
+    }
+    
+    public void setDescription(String description) {
+        this.description = description;
     }
 } 

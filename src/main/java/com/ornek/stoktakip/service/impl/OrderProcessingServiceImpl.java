@@ -20,6 +20,7 @@ public class OrderProcessingServiceImpl implements OrderProcessingService {
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
     private final MaterialCardRepository materialCardRepository;
+    private final ProductRepository productRepository;
     private final MaterialStockMovementRepository materialStockMovementRepository;
     private final BomExplosionService bomExplosionService;
     private final StockSyncService stockSyncService;
@@ -28,12 +29,14 @@ public class OrderProcessingServiceImpl implements OrderProcessingService {
     public OrderProcessingServiceImpl(OrderRepository orderRepository,
                                    OrderItemRepository orderItemRepository,
                                    MaterialCardRepository materialCardRepository,
+                                   ProductRepository productRepository,
                                    MaterialStockMovementRepository materialStockMovementRepository,
                                    BomExplosionService bomExplosionService,
                                    StockSyncService stockSyncService) {
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
         this.materialCardRepository = materialCardRepository;
+        this.productRepository = productRepository;
         this.materialStockMovementRepository = materialStockMovementRepository;
         this.bomExplosionService = bomExplosionService;
         this.stockSyncService = stockSyncService;
@@ -204,8 +207,8 @@ public class OrderProcessingServiceImpl implements OrderProcessingService {
         List<OrderItem> orderItems = orderItemRepository.findByOrderId(order.getId());
         
         for (OrderItem item : orderItems) {
-            MaterialCard material = materialCardRepository.findById(item.getProduct().getId()).orElse(null);
-            if (material == null || material.getCurrentStock().compareTo(item.getQuantity()) < 0) {
+            Product product = item.getProduct();
+            if (product == null || product.getCurrentStock().compareTo(item.getQuantity()) < 0) {
                 return false;
             }
         }
@@ -219,11 +222,11 @@ public class OrderProcessingServiceImpl implements OrderProcessingService {
             List<OrderItem> orderItems = orderItemRepository.findByOrderId(order.getId());
             
             for (OrderItem item : orderItems) {
-                MaterialCard material = materialCardRepository.findById(item.getProduct().getId()).orElse(null);
-                if (material != null) {
+                Product product = item.getProduct();
+                if (product != null) {
                     // Stok rezervasyonu için geçici olarak stok miktarını azalt
-                    material.setCurrentStock(material.getCurrentStock().subtract(item.getQuantity()));
-                    materialCardRepository.save(material);
+                    product.setCurrentStock(product.getCurrentStock().subtract(item.getQuantity()));
+                    productRepository.save(product);
                 }
             }
             
@@ -240,11 +243,11 @@ public class OrderProcessingServiceImpl implements OrderProcessingService {
             List<OrderItem> orderItems = orderItemRepository.findByOrderId(order.getId());
             
             for (OrderItem item : orderItems) {
-                MaterialCard material = materialCardRepository.findById(item.getProduct().getId()).orElse(null);
-                if (material != null) {
+                Product product = item.getProduct();
+                if (product != null) {
                     // Rezerve edilen stokları geri yükle
-                    material.setCurrentStock(material.getCurrentStock().add(item.getQuantity()));
-                    materialCardRepository.save(material);
+                    product.setCurrentStock(product.getCurrentStock().add(item.getQuantity()));
+                    productRepository.save(product);
                 }
             }
             
@@ -366,12 +369,12 @@ public class OrderProcessingServiceImpl implements OrderProcessingService {
         List<OrderItem> orderItems = orderItemRepository.findByOrderId(order.getId());
         
         for (OrderItem item : orderItems) {
-            MaterialCard material = materialCardRepository.findById(item.getProduct().getId()).orElse(null);
-            if (material != null) {
-                material.setCurrentStock(material.getCurrentStock().add(item.getQuantity()));
-                materialCardRepository.save(material);
+            Product product = item.getProduct();
+            if (product != null) {
+                product.setCurrentStock(product.getCurrentStock().add(item.getQuantity()));
+                productRepository.save(product);
                 
-                createStockMovement(material.getId(), item.getQuantity().doubleValue(), "RETURN", "İade: " + order.getOrderNumber());
+                createStockMovement(product.getId(), item.getQuantity().doubleValue(), "RETURN", "İade: " + order.getOrderNumber());
             }
         }
     }

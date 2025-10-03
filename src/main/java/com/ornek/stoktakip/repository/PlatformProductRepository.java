@@ -20,7 +20,7 @@ public interface PlatformProductRepository extends JpaRepository<PlatformProduct
     
     List<PlatformProduct> findByPlatform(Platform platform);
     
-    List<PlatformProduct> findByProduct(MaterialCard product);
+    List<PlatformProduct> findByProduct(Product product);
     
     List<PlatformProduct> findByPlatformIdAndIsActiveTrue(Long platformId);
     

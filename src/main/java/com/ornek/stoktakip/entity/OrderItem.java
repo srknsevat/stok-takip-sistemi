@@ -18,7 +18,7 @@ public class OrderItem {
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
-    private MaterialCard product;
+    private Product product;
     
     @Column(name = "quantity", nullable = false)
     private BigDecimal quantity;
@@ -65,7 +65,7 @@ public class OrderItem {
     // Constructors
     public OrderItem() {}
     
-    public OrderItem(Order order, MaterialCard product, BigDecimal quantity, BigDecimal unitPrice) {
+    public OrderItem(Order order, Product product, BigDecimal quantity, BigDecimal unitPrice) {
         this.order = order;
         this.product = product;
         this.quantity = quantity;
@@ -80,8 +80,8 @@ public class OrderItem {
     public Order getOrder() { return order; }
     public void setOrder(Order order) { this.order = order; }
     
-    public MaterialCard getProduct() { return product; }
-    public void setProduct(MaterialCard product) { this.product = product; }
+    public Product getProduct() { return product; }
+    public void setProduct(Product product) { this.product = product; }
     
     public BigDecimal getQuantity() { return quantity; }
     public void setQuantity(BigDecimal quantity) { 
