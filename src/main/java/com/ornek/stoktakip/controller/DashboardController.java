@@ -191,7 +191,7 @@ public class DashboardController {
                 return ResponseEntity.notFound().build();
             }
             
-            Integer realTimeStock = product.getCurrentStock(); // Basit implementasyon
+            Integer realTimeStock = product.getCurrentStock().intValue(); // Basit implementasyon
             boolean isSynced = true; // Basit implementasyon
             
             Map<String, Object> response = new HashMap<>();

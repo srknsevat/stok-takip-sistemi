@@ -47,13 +47,13 @@ public class CategoryController {
     }
 
     @PostMapping("/delete")
-    public String deleteCategory(@RequestParam String name, 
+    public String deleteCategory(@RequestParam Long id, 
                                RedirectAttributes redirectAttributes,
                                Locale locale) {
         try {
-            categoryService.deleteCategory(name);
+            categoryService.deleteCategory(id);
             String message = messageSource.getMessage("category.deleted.success", 
-                new Object[]{name}, locale);
+                new Object[]{id}, locale);
             redirectAttributes.addFlashAttribute("successMessage", message);
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
