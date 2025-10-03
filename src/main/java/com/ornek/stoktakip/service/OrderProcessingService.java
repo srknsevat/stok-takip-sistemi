@@ -3,6 +3,8 @@ package com.ornek.stoktakip.service;
 import com.ornek.stoktakip.entity.Order;
 import com.ornek.stoktakip.entity.OrderItem;
 import com.ornek.stoktakip.dto.OrderProcessingResult;
+import com.ornek.stoktakip.dto.OrderStockCheckResult;
+import com.ornek.stoktakip.dto.OrderCostResult;
 import java.util.List;
 import java.util.Map;
 
@@ -97,6 +99,21 @@ public interface OrderProcessingService {
      * Sipariş üretim planı oluştur
      */
     OrderProductionPlan createOrderProductionPlan(Order order);
+    
+    /**
+     * Sipariş stok kontrolü yap
+     */
+    OrderStockCheckResult checkOrderStock(Order order);
+    
+    /**
+     * Sipariş maliyet hesapla
+     */
+    OrderCostResult calculateOrderCost(Order order);
+    
+    /**
+     * BOM ile sipariş işle
+     */
+    OrderProcessingResult processOrderWithBOM(Order order);
     
     /**
      * Sipariş üretim planı sınıfı

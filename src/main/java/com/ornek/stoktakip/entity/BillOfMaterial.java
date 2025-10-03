@@ -29,8 +29,9 @@ public class BillOfMaterial {
     @Column(name = "bom_level")
     private Integer bomLevel = 1;
     
+    @Enumerated(EnumType.STRING)
     @Column(name = "bom_type", length = 50)
-    private String bomType = "STANDARD";
+    private BomType bomType = BomType.STANDARD;
     
     @Column(name = "efficiency", precision = 5, scale = 2)
     private BigDecimal efficiency = BigDecimal.valueOf(100.00);
@@ -111,8 +112,8 @@ public class BillOfMaterial {
     public Integer getBomLevel() { return bomLevel; }
     public void setBomLevel(Integer bomLevel) { this.bomLevel = bomLevel; }
     
-    public String getBomType() { return bomType; }
-    public void setBomType(String bomType) { this.bomType = bomType; }
+    public BomType getBomType() { return bomType; }
+    public void setBomType(BomType bomType) { this.bomType = bomType; }
     
     public BigDecimal getEfficiency() { return efficiency; }
     public void setEfficiency(BigDecimal efficiency) { this.efficiency = efficiency; }

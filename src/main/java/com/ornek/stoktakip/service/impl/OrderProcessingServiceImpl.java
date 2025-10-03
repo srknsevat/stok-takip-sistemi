@@ -438,4 +438,150 @@ public class OrderProcessingServiceImpl implements OrderProcessingService {
             return errorPlan;
         }
     }
+    
+    @Override
+    public OrderStockCheckResult checkOrderStock(Order order) {
+        OrderStockCheckResult result = new OrderStockCheckResult(order, true);
+        
+        try {
+            List<OrderItem> orderItems = orderItemRepository.findByOrderId(order.getId());
+            boolean allAvailable = true;
+            
+            for (OrderItem item : orderItems) {
+                Product product = item.getProduct();
+                Integer requiredQuantity = item.getQuantity().intValue();
+                Integer availableQuantity = product != null ? product.getCurrentStock().intValue() : 0;
+                
+                OrderStockCheckResult.StockCheckItem checkItem = 
+                    new OrderStockCheckResult.StockCheckItem(
+                        product != null ? product.getId() : null,
+                        product != null ? product.getProductName() : "Bilinmeyen Ürün",
+                        requiredQuantity,
+                        availableQuantity
+                    );
+                
+                result.getStockCheckItems().add(checkItem);
+                
+                if (availableQuantity < requiredQuantity) {
+                    allAvailable = false;
+                }
+            }
+            
+            result.setStockAvailable(allAvailable);
+            result.setMessage(allAvailable ? "Tüm ürünler stokta mevcut" : "Bazı ürünler stokta yetersiz");
+            
+        } catch (Exception e) {
+            log.error("Stok kontrolü hatası: " + e.getMessage(), e);
+            result.setStockAvailable(false);
+            result.setMessage("Stok kontrolü sırasında hata: " + e.getMessage());
+        }
+        
+        return result;
+    }
+    
+    @Override
+    public OrderCostResult calculateOrderCost(Order order) {
+        OrderCostResult result = new OrderCostResult(order);
+        
+        try {
+            List<OrderItem> orderItems = orderItemRepository.findByOrderId(order.getId());
+            BigDecimal totalCost = BigDecimal.ZERO;
+            BigDecimal materialCost = BigDecimal.ZERO;
+            
+            for (OrderItem item : orderItems) {
+                Product product = item.getProduct();
+                if (product != null) {
+                    BigDecimal unitCost = product.getCostPrice() != null ? product.getCostPrice() : BigDecimal.ZERO;
+                    BigDecimal itemCost = unitCost.multiply(item.getQuantity());
+                    
+                    totalCost = totalCost.add(itemCost);
+                    materialCost = materialCost.add(itemCost);
+                    
+                    OrderCostResult.CostItem costItem = new OrderCostResult.CostItem(
+                        product.getId(),
+                        product.getProductName(),
+                        item.getQuantity().intValue(),
+                        unitCost,
+                        "MATERIAL"
+                    );
+                    
+                    result.getCostItems().add(costItem);
+                }
+            }
+            
+            // Labor ve overhead maliyetleri (şimdilik sabit)
+            BigDecimal laborCost = totalCost.multiply(BigDecimal.valueOf(0.1)); // %10
+            BigDecimal overheadCost = totalCost.multiply(BigDecimal.valueOf(0.05)); // %5
+            
+            result.setMaterialCost(materialCost);
+            result.setLaborCost(laborCost);
+            result.setOverheadCost(overheadCost);
+            result.setTotalCost(totalCost.add(laborCost).add(overheadCost));
+            
+            // Kar hesaplama
+            BigDecimal totalRevenue = order.getTotalAmount();
+            result.setProfit(totalRevenue.subtract(result.getTotalCost()));
+            
+            if (totalRevenue.compareTo(BigDecimal.ZERO) > 0) {
+                result.setProfitMargin(result.getProfit().divide(totalRevenue, 4, BigDecimal.ROUND_HALF_UP)
+                    .multiply(BigDecimal.valueOf(100)));
+            }
+            
+        } catch (Exception e) {
+            log.error("Maliyet hesaplama hatası: " + e.getMessage(), e);
+        }
+        
+        return result;
+    }
+    
+    @Override
+    public OrderProcessingResult processOrderWithBOM(Order order) {
+        OrderProcessingResult result = new OrderProcessingResult();
+        result.setOrder(order);
+        
+        try {
+            // Önce stok kontrolü yap
+            OrderStockCheckResult stockCheck = checkOrderStock(order);
+            if (!stockCheck.isStockAvailable()) {
+                result.setSuccess(false);
+                result.setMessage("Stok yetersiz: " + stockCheck.getMessage());
+                return result;
+            }
+            
+            // BOM patlatma işlemi
+            List<OrderItem> orderItems = orderItemRepository.findByOrderId(order.getId());
+            Map<Long, Double> explodedBOM = new HashMap<>();
+            
+            for (OrderItem item : orderItems) {
+                Map<Long, Double> itemBOM = bomExplosionService.explodeBom(item.getProduct().getId(), item.getQuantity().doubleValue());
+                for (Map.Entry<Long, Double> entry : itemBOM.entrySet()) {
+                    explodedBOM.merge(entry.getKey(), entry.getValue(), Double::sum);
+                }
+            }
+            
+            // Stokları güncelle
+            for (Map.Entry<Long, Double> entry : explodedBOM.entrySet()) {
+                MaterialCard material = materialCardRepository.findById(entry.getKey()).orElse(null);
+                if (material != null) {
+                    BigDecimal requiredQuantity = BigDecimal.valueOf(entry.getValue());
+                    if (material.getCurrentStock().compareTo(requiredQuantity) >= 0) {
+                        material.setCurrentStock(material.getCurrentStock().subtract(requiredQuantity));
+                        materialCardRepository.save(material);
+                        
+                        createStockMovement(material.getId(), requiredQuantity.doubleValue(), "EXIT", "BOM Satış: " + order.getOrderNumber());
+                    }
+                }
+            }
+            
+            // Siparişi işle
+            result = processOrder(order);
+            
+        } catch (Exception e) {
+            log.error("BOM ile sipariş işleme hatası: " + e.getMessage(), e);
+            result.setSuccess(false);
+            result.setMessage("BOM ile sipariş işleme hatası: " + e.getMessage());
+        }
+        
+        return result;
+    }
 }

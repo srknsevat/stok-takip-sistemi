@@ -212,17 +212,4 @@ public class PlatformServiceImpl implements PlatformService {
         return updates;
     }
     
-    @Override
-    public boolean deletePlatform(Long id) {
-        try {
-            if (platformRepository.existsById(id)) {
-                platformRepository.deleteById(id);
-                return true;
-            }
-            return false;
-        } catch (Exception e) {
-            System.err.println("Platform silme hatası: " + e.getMessage());
-            return false;
-        }
-    }
 }

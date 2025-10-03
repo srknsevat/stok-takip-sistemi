@@ -36,10 +36,13 @@ public class User {
     @Column(nullable = false)
     private String lastName;
     
-    @NotNull(message = "Rol zorunludur")
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private UserRole role;
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "user_roles",
+        joinColumns = @JoinColumn(name = "user_id"),
+        inverseJoinColumns = @JoinColumn(name = "role_id")
+    )
+    private List<Role> roles;
     
     @Column(nullable = false)
     private Boolean isActive = true;
@@ -115,8 +118,8 @@ public class User {
     public String getLastName() { return lastName; }
     public void setLastName(String lastName) { this.lastName = lastName; }
     
-    public UserRole getRole() { return role; }
-    public void setRole(UserRole role) { this.role = role; }
+    public List<Role> getRoles() { return roles; }
+    public void setRoles(List<Role> roles) { this.roles = roles; }
     
     public Boolean getIsActive() { return isActive; }
     public void setIsActive(Boolean isActive) { this.isActive = isActive; }
@@ -173,16 +176,23 @@ public class User {
         return isActive;
     }
     
-    public java.util.Collection<String> getRoles() {
-        java.util.List<String> roles = new java.util.ArrayList<>();
-        roles.add("ROLE_" + role.name());
-        return roles;
+    public java.util.Collection<String> getRoleNames() {
+        java.util.List<String> roleNames = new java.util.ArrayList<>();
+        if (roles != null) {
+            for (Role role : roles) {
+                roleNames.add("ROLE_" + role.getName().toUpperCase());
+            }
+        }
+        return roleNames;
     }
     
-    public boolean hasAnyRole(UserRole... roles) {
-        for (UserRole role : roles) {
-            if (this.role == role) {
-                return true;
+    public boolean hasAnyRole(String... roleNames) {
+        if (roles == null) return false;
+        for (String roleName : roleNames) {
+            for (Role role : roles) {
+                if (role.getName().equalsIgnoreCase(roleName)) {
+                    return true;
+                }
             }
         }
         return false;

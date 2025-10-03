@@ -11,6 +11,7 @@ public class PlatformStockInfo {
     private BigDecimal currentStock;
     private BigDecimal atpStock;
     private BigDecimal reservedStock;
+    private Integer oldStock;
     private LocalDateTime lastSync;
     private String syncStatus;
     
@@ -37,4 +38,7 @@ public class PlatformStockInfo {
     
     public String getSyncStatus() { return syncStatus; }
     public void setSyncStatus(String syncStatus) { this.syncStatus = syncStatus; }
+    
+    public Integer getOldStock() { return oldStock; }
+    public void setOldStock(Integer oldStock) { this.oldStock = oldStock; }
 }

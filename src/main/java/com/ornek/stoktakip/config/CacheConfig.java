@@ -13,7 +13,7 @@ public class CacheConfig {
     @Bean
     public CacheManager cacheManager() {
         ConcurrentMapCacheManager cacheManager = new ConcurrentMapCacheManager();
-        cacheManager.setCacheNames("platforms", "materials", "users", "orders", "boms");
+        cacheManager.setCacheNames(java.util.Arrays.asList("platforms", "materials", "users", "orders", "boms"));
         return cacheManager;
     }
 }
