@@ -1,6 +1,7 @@
 package com.ornek.stoktakip.controller;
 
 import com.ornek.stoktakip.entity.MaterialCard;
+import com.ornek.stoktakip.entity.User;
 import com.ornek.stoktakip.service.MaterialCardService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
