@@ -49,7 +49,7 @@ public class SessionInterceptor implements HandlerInterceptor {
         
         // Admin sayfaları için yetki kontrolü
         if (requestURI.startsWith("/admin/")) {
-            if (!user.hasAnyRole(User.Role.SUPER_ADMIN, User.Role.ADMIN)) {
+            if (!user.hasAnyRole("SUPER_ADMIN", "ADMIN")) {
                 response.sendRedirect("/?access_denied=true");
                 return false;
             }
@@ -57,7 +57,7 @@ public class SessionInterceptor implements HandlerInterceptor {
         
         // Platform yönetimi için yetki kontrolü
         if (requestURI.startsWith("/platform-config/")) {
-            if (!user.hasAnyRole(User.Role.SUPER_ADMIN, User.Role.ADMIN, User.Role.MANAGER)) {
+            if (!user.hasAnyRole("SUPER_ADMIN", "ADMIN", "MANAGER")) {
                 response.sendRedirect("/?access_denied=true");
                 return false;
             }

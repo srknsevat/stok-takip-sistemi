@@ -59,7 +59,8 @@ public class UserManagementController {
         }
         
         model.addAttribute("user", new User());
-        model.addAttribute("roles", User.Role.values());
+        // Roller veritabanından alınacak - şimdilik boş liste
+        model.addAttribute("roles", new java.util.ArrayList<Role>());
         return "admin/users/form";
     }
     
@@ -75,7 +76,8 @@ public class UserManagementController {
         
         userService.getUserById(id).ifPresent(user -> {
             model.addAttribute("user", user);
-            model.addAttribute("roles", User.Role.values());
+            // Roller veritabanından alınacak - şimdilik boş liste
+        model.addAttribute("roles", new java.util.ArrayList<Role>());
         });
         return "admin/users/form";
     }
@@ -226,7 +228,7 @@ public class UserManagementController {
      */
     @PostMapping("/assign-role/{id}")
     public String assignRole(@PathVariable Long id,
-                            @RequestParam Set<User.Role> roles,
+                            @RequestParam Set<Role> roles,
                             HttpSession session,
                             RedirectAttributes redirectAttributes) {
         // Yetki kontrolü
@@ -265,6 +267,6 @@ public class UserManagementController {
      */
     private boolean hasAdminRole(HttpSession session) {
         User user = (User) session.getAttribute("user");
-        return user != null && user.hasAnyRole(User.Role.SUPER_ADMIN, User.Role.ADMIN);
+        return user != null && user.hasAnyRole("SUPER_ADMIN", "ADMIN");
     }
 }
