@@ -381,4 +381,7 @@ public class MaterialCard {
                 ", currentStock=" + currentStock +
                 '}';
     }
+    
+    // Eksik metod
+    public String getUnit() { return unitOfMeasure; }
 }

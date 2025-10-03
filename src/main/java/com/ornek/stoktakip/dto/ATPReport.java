@@ -38,4 +38,9 @@ public class ATPReport {
     
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
+    
+    // Eksik metodlar
+    public void setPlatformStockUpdates(java.util.Map<String, PlatformStockInfo> platformStockUpdates) {
+        this.platformStockUpdates = platformStockUpdates;
+    }
 }

@@ -41,4 +41,22 @@ public class PlatformStockInfo {
     
     public Integer getOldStock() { return oldStock; }
     public void setOldStock(Integer oldStock) { this.oldStock = oldStock; }
+    
+    // Eksik metodlar
+    public String getPlatformName() { return platform != null ? platform.getName() : null; }
+    public void setPlatformName(String platformName) { /* Placeholder */ }
+    
+    public String getPlatformCode() { return platform != null ? platform.getCode() : null; }
+    public void setPlatformCode(String platformCode) { /* Placeholder */ }
+    
+    public Integer getNewStock() { return currentStock != null ? currentStock.intValue() : 0; }
+    public void setNewStock(int newStock) { this.currentStock = BigDecimal.valueOf(newStock); }
+    
+    public boolean isUpdateSuccessful() { return "SUCCESS".equals(syncStatus); }
+    public void setUpdateSuccessful(boolean updateSuccessful) { 
+        this.syncStatus = updateSuccessful ? "SUCCESS" : "FAILED"; 
+    }
+    
+    public LocalDateTime getUpdateTime() { return lastSync; }
+    public void setUpdateTime(LocalDateTime updateTime) { this.lastSync = updateTime; }
 }
