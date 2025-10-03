@@ -374,25 +374,26 @@ public class ShopifyIntegrationService implements PlatformIntegrationService {
     }
     
     @Override
-    public void retryOperation(Platform platform, Runnable operation, int maxRetries) {
+    public boolean retryOperation(Platform platform, Runnable operation, int maxRetries) {
         int attempts = 0;
         while (attempts < maxRetries) {
             try {
                 operation.run();
-                return; // Başarılı olursa çık
+                return true; // Başarılı olursa çık
             } catch (Exception e) {
                 attempts++;
                 if (attempts >= maxRetries) {
-                    throw new RuntimeException("Maksimum deneme sayısına ulaşıldı: " + e.getMessage(), e);
+                    return false; // Maksimum deneme sayısına ulaşıldı
                 }
                 // Kısa bir bekleme sonrası tekrar dene
                 try {
                     Thread.sleep(1000 * attempts); // Artan bekleme süresi
                 } catch (InterruptedException ie) {
                     Thread.currentThread().interrupt();
-                    throw new RuntimeException("İşlem kesintiye uğradı", ie);
+                    return false; // İşlem kesintiye uğradı
                 }
             }
         }
+        return false; // Hiçbir deneme başarılı olmadı
     }
 }
