@@ -46,14 +46,14 @@ public class BillOfMaterialController {
             boms = bomService.searchBOMs(search);
             model.addAttribute("searchTerm", search);
         } else if (type != null && !type.isEmpty()) {
-            boms = bomService.getBOMsByType(BillOfMaterial.BomType.valueOf(type));
+            boms = bomService.getBOMsByType(BomType.valueOf(type));
             model.addAttribute("selectedType", type);
         } else {
             boms = bomService.getAllBOMs();
         }
         
         model.addAttribute("boms", boms);
-        model.addAttribute("bomTypes", BillOfMaterial.BomType.values());
+        model.addAttribute("bomTypes", BomType.values());
         model.addAttribute("totalBOMs", bomService.getBOMCount());
         
         return "bom/list";
@@ -66,7 +66,7 @@ public class BillOfMaterialController {
     public String showCreateForm(Model model, HttpSession session) {
         model.addAttribute("bom", new BillOfMaterial());
         model.addAttribute("materials", materialCardService.getAllMaterialCards());
-        model.addAttribute("bomTypes", BillOfMaterial.BomType.values());
+        model.addAttribute("bomTypes", BomType.values());
         return "bom/form";
     }
     
@@ -78,7 +78,7 @@ public class BillOfMaterialController {
         BillOfMaterial bom = bomService.getBOMById(id);
         model.addAttribute("bom", bom);
         model.addAttribute("materials", materialCardService.getAllMaterialCards());
-        model.addAttribute("bomTypes", BillOfMaterial.BomType.values());
+        model.addAttribute("bomTypes", BomType.values());
         return "bom/form";
     }
     
@@ -284,8 +284,8 @@ public class BillOfMaterialController {
     @GetMapping("/statistics")
     public String bomStatistics(Model model, HttpSession session) {
         model.addAttribute("totalBOMs", bomService.getBOMCount());
-        model.addAttribute("productionBOMs", bomService.getBOMCountByType(BillOfMaterial.BomType.PRODUCTION));
-        model.addAttribute("engineeringBOMs", bomService.getBOMCountByType(BillOfMaterial.BomType.ENGINEERING));
+        model.addAttribute("productionBOMs", bomService.getBOMCountByType(BomType.MANUFACTURING));
+        model.addAttribute("engineeringBOMs", bomService.getBOMCountByType(BomType.ENGINEERING));
         
         return "bom/statistics";
     }

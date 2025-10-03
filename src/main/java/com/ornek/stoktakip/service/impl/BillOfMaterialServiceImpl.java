@@ -61,7 +61,7 @@ public class BillOfMaterialServiceImpl implements BillOfMaterialService {
     
     @Override
     public BillOfMaterial createBOM(MaterialCard parentMaterial, MaterialCard childMaterial, 
-                                   BigDecimal quantity, BillOfMaterial.BomType bomType) {
+                                   BigDecimal quantity, BomType bomType) {
         BillOfMaterial bom = new BillOfMaterial(parentMaterial, childMaterial, quantity);
         bom.setBomType(bomType);
         bom.setCreatedAt(LocalDateTime.now());
@@ -84,7 +84,7 @@ public class BillOfMaterialServiceImpl implements BillOfMaterialService {
     
     @Override
     @Transactional(readOnly = true)
-    public List<BillOfMaterial> getBOMsByType(BillOfMaterial.BomType bomType) {
+    public List<BillOfMaterial> getBOMsByType(BomType bomType) {
         return bomRepository.findByBomType(bomType);
     }
     
@@ -325,7 +325,7 @@ public class BillOfMaterialServiceImpl implements BillOfMaterialService {
     @Override
     @Transactional(readOnly = true)
     public List<BillOfMaterial> getBOMVersions(Long parentMaterialId) {
-        return bomRepository.findBOMVersions(parentMaterialId, BillOfMaterial.BomType.PRODUCTION);
+        return bomRepository.findBOMVersions(parentMaterialId, BomType.MANUFACTURING);
     }
     
     @Override
@@ -487,7 +487,7 @@ public class BillOfMaterialServiceImpl implements BillOfMaterialService {
     
     @Override
     @Transactional(readOnly = true)
-    public long getBOMCountByType(BillOfMaterial.BomType bomType) {
+    public long getBOMCountByType(BomType bomType) {
         return bomRepository.countByBomType(bomType);
     }
     

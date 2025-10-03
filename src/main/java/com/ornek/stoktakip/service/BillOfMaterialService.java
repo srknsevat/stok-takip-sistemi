@@ -23,14 +23,14 @@ public interface BillOfMaterialService {
     
     // BOM oluşturma
     BillOfMaterial createBOM(MaterialCard parentMaterial, MaterialCard childMaterial, 
-                           BigDecimal quantity, BillOfMaterial.BomType bomType);
+                           BigDecimal quantity, BomType bomType);
     
     // BOM sorguları
     List<BillOfMaterial> getBOMsByParentMaterial(Long parentMaterialId);
     
     List<BillOfMaterial> getBOMsByChildMaterial(Long childMaterialId);
     
-    List<BillOfMaterial> getBOMsByType(BillOfMaterial.BomType bomType);
+    List<BillOfMaterial> getBOMsByType(BomType bomType);
     
     List<BillOfMaterial> getActiveBOMs();
     
@@ -110,7 +110,7 @@ public interface BillOfMaterialService {
     // İstatistikler
     long getBOMCount();
     
-    long getBOMCountByType(BillOfMaterial.BomType bomType);
+    long getBOMCountByType(BomType bomType);
     
     long getBOMCountByParent(Long parentMaterialId);
     

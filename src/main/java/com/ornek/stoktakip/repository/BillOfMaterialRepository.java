@@ -26,9 +26,9 @@ public interface BillOfMaterialRepository extends JpaRepository<BillOfMaterial, 
     List<BillOfMaterial> findByIsActiveTrue();
     
     // BOM türüne göre
-    List<BillOfMaterial> findByBomType(BillOfMaterial.BomType bomType);
+    List<BillOfMaterial> findByBomType(BomType bomType);
     
-    List<BillOfMaterial> findByParentMaterialIdAndBomType(Long parentMaterialId, BillOfMaterial.BomType bomType);
+    List<BillOfMaterial> findByParentMaterialIdAndBomType(Long parentMaterialId, BomType bomType);
     
     // BOM seviyesine göre
     List<BillOfMaterial> findByBomLevel(Integer bomLevel);
@@ -66,7 +66,7 @@ public interface BillOfMaterialRepository extends JpaRepository<BillOfMaterial, 
     long countTotalBOMs();
     
     @Query("SELECT COUNT(b) FROM BillOfMaterial b WHERE b.bomType = :bomType")
-    long countByBomType(@Param("bomType") BillOfMaterial.BomType bomType);
+    long countByBomType(@Param("bomType") BomType bomType);
     
     @Query("SELECT COUNT(b) FROM BillOfMaterial b WHERE b.parentMaterial.id = :parentMaterialId")
     long countByParent(@Param("parentMaterialId") Long parentMaterialId);
@@ -118,7 +118,7 @@ public interface BillOfMaterialRepository extends JpaRepository<BillOfMaterial, 
            "AND b.bomType = :bomType " +
            "ORDER BY b.createdAt DESC")
     List<BillOfMaterial> findBOMVersions(@Param("parentMaterialId") Long parentMaterialId, 
-                                        @Param("bomType") BillOfMaterial.BomType bomType);
+                                        @Param("bomType") BomType bomType);
     
     // BOM doğrulama
     @Query("SELECT b FROM BillOfMaterial b WHERE b.parentMaterial.id = :parentMaterialId " +
