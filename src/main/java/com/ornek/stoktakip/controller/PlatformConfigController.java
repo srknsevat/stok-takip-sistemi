@@ -168,4 +168,80 @@ public class PlatformConfigController {
     private String[] getPlatformTypes() {
         return new String[]{"eBay", "Shopify", "Amazon", "Trendyol", "Hepsiburada", "N11", "GittiGidiyor"};
     }
+    
+    // Template helper metodları
+    public String getApiKeyHelp(String platformCode) {
+        switch (platformCode.toUpperCase()) {
+            case "EBAY":
+                return "eBay Developer Portal'dan alınan Client ID";
+            case "SHOPIFY":
+                return "Shopify Partners'dan alınan API Key";
+            case "AMAZON":
+                return "Amazon SP-API'den alınan Access Key ID";
+            case "TRENDYOL":
+                return "Trendyol Partner'dan alınan API Key";
+            default:
+                return "Platform API Key'i";
+        }
+    }
+    
+    public String getApiSecretHelp(String platformCode) {
+        switch (platformCode.toUpperCase()) {
+            case "EBAY":
+                return "eBay Developer Portal'dan alınan Client Secret";
+            case "SHOPIFY":
+                return "Shopify Partners'dan alınan API Secret";
+            case "AMAZON":
+                return "Amazon SP-API'den alınan Secret Access Key";
+            case "TRENDYOL":
+                return "Trendyol Partner'dan alınan API Secret";
+            default:
+                return "Platform API Secret'ı";
+        }
+    }
+    
+    public String getAccessTokenHelp(String platformCode) {
+        switch (platformCode.toUpperCase()) {
+            case "EBAY":
+                return "eBay OAuth 2.0 Access Token (Opsiyonel)";
+            case "SHOPIFY":
+                return "Shopify Admin API Access Token";
+            case "AMAZON":
+                return "Amazon SP-API Access Token (Opsiyonel)";
+            case "TRENDYOL":
+                return "Trendyol Partner Access Token (Opsiyonel)";
+            default:
+                return "Platform Access Token'ı (Opsiyonel)";
+        }
+    }
+    
+    public String getRefreshTokenHelp(String platformCode) {
+        switch (platformCode.toUpperCase()) {
+            case "EBAY":
+                return "eBay OAuth 2.0 Refresh Token (Opsiyonel)";
+            case "SHOPIFY":
+                return "Shopify Refresh Token (Opsiyonel)";
+            case "AMAZON":
+                return "Amazon SP-API Refresh Token (Opsiyonel)";
+            case "TRENDYOL":
+                return "Trendyol Partner Refresh Token (Opsiyonel)";
+            default:
+                return "Platform Refresh Token'ı (Opsiyonel)";
+        }
+    }
+    
+    public String getPlatformGuideTitle(String platformCode) {
+        switch (platformCode.toUpperCase()) {
+            case "EBAY":
+                return "eBay API Kurulum Rehberi";
+            case "SHOPIFY":
+                return "Shopify API Kurulum Rehberi";
+            case "AMAZON":
+                return "Amazon SP-API Kurulum Rehberi";
+            case "TRENDYOL":
+                return "Trendyol Partner API Kurulum Rehberi";
+            default:
+                return "Platform API Kurulum Rehberi";
+        }
+    }
 }
