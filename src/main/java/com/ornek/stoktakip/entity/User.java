@@ -160,6 +160,14 @@ public class User {
         return hasRole("ADMIN") || hasRole("SUPER_ADMIN");
     }
     
+    // Eksik metod - geriye uyumluluk için
+    public String getRole() {
+        if (roles != null && !roles.isEmpty()) {
+            return roles.get(0).getName();
+        }
+        return "USER";
+    }
+    
     // Spring Security için gerekli metodlar
     public boolean isAccountNonExpired() {
         return isActive;

@@ -74,4 +74,10 @@ public class StockMovement {
     public void setDescription(String description) {
         this.description = description;
     }
+    
+    // Eksik metod - geriye uyumluluk için
+    public void setProduct(Product product) {
+        // Product'ı MaterialCard'a dönüştürme gerekebilir
+        // Şimdilik placeholder
+    }
 } 

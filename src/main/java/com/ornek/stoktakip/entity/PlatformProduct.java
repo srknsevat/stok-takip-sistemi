@@ -105,6 +105,13 @@ public class PlatformProduct {
         this.platformSku = platformSku;
     }
     
+    // Eksik constructor
+    public PlatformProduct(Product product, Platform platform, String platformProductId) {
+        this.product = product;
+        this.platform = platform;
+        this.platformProductId = platformProductId;
+    }
+    
     // Getters and Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }

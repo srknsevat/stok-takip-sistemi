@@ -68,4 +68,11 @@ public class Category {
     
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+    
+    // Eksik metodlar
+    public String getColor() { return null; } // Placeholder
+    public void setColor(String color) { /* Placeholder */ }
+    
+    public String getIcon() { return null; } // Placeholder
+    public void setIcon(String icon) { /* Placeholder */ }
 }
