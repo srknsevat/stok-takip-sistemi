@@ -375,4 +375,64 @@ public class OrderProcessingServiceImpl implements OrderProcessingService {
             }
         }
     }
+    
+    @Override
+    public OrderProcessingService.OrderProductionPlan createOrderProductionPlan(Order order) {
+        try {
+            List<OrderItem> orderItems = orderItemRepository.findByOrderId(order.getId());
+            List<OrderProcessingService.MrpItem> mrpItems = new ArrayList<>();
+            
+            for (OrderItem orderItem : orderItems) {
+                // BOM patlatma işlemi
+                Map<Long, Double> explodedBOM = explodeBOMForOrder(order);
+                
+                for (Map.Entry<Long, Double> entry : explodedBOM.entrySet()) {
+                    Long materialId = entry.getKey();
+                    Double requiredQuantity = entry.getValue();
+                    
+                    // Mevcut stok kontrolü
+                    MaterialCard material = materialCardRepository.findById(materialId).orElse(null);
+                    Double availableQuantity = material != null ? material.getCurrentStock().doubleValue() : 0.0;
+                    
+                    OrderProcessingService.MrpItem mrpItem = new OrderProcessingService.MrpItem(
+                        materialId,
+                        material != null ? material.getMaterialName() : "Bilinmeyen Malzeme",
+                        requiredQuantity,
+                        availableQuantity
+                    );
+                    
+                    // Durum belirleme
+                    if (availableQuantity >= requiredQuantity) {
+                        mrpItem.setStatus("YETERLI");
+                    } else {
+                        mrpItem.setStatus("YETERSIZ");
+                    }
+                    
+                    mrpItem.setUnit(material != null ? material.getUnit() : "ADET");
+                    mrpItems.add(mrpItem);
+                }
+            }
+            
+            // Plan durumunu belirle
+            String planStatus = mrpItems.stream()
+                .anyMatch(item -> "YETERSIZ".equals(item.getStatus())) ? "YETERSIZ_STOK" : "HAZIR";
+            
+            OrderProcessingService.OrderProductionPlan productionPlan = 
+                new OrderProcessingService.OrderProductionPlan(order, mrpItems, planStatus);
+            
+            productionPlan.setNotes("Sipariş " + order.getOrderNumber() + " için üretim planı oluşturuldu");
+            
+            return productionPlan;
+            
+        } catch (Exception e) {
+            log.error("Üretim planı oluşturulurken hata: " + e.getMessage(), e);
+            
+            // Hata durumunda boş plan döndür
+            OrderProcessingService.OrderProductionPlan errorPlan = 
+                new OrderProcessingService.OrderProductionPlan(order, new ArrayList<>(), "HATA");
+            errorPlan.setNotes("Üretim planı oluşturulurken hata: " + e.getMessage());
+            
+            return errorPlan;
+        }
+    }
 }
