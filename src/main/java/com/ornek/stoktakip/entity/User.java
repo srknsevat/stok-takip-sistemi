@@ -90,13 +90,13 @@ public class User {
     // Constructors
     public User() {}
     
-    public User(String username, String email, String password, String firstName, String lastName, UserRole role) {
+    public User(String username, String email, String password, String firstName, String lastName, List<Role> roles) {
         this.username = username;
         this.email = email;
         this.password = password;
         this.firstName = firstName;
         this.lastName = lastName;
-        this.role = role;
+        this.roles = roles;
     }
     
     // Getters and Setters
@@ -147,16 +147,17 @@ public class User {
         return firstName + " " + lastName;
     }
     
-    public boolean hasRole(UserRole role) {
-        return this.role == role;
+    public boolean hasRole(String roleName) {
+        if (roles == null) return false;
+        return roles.stream().anyMatch(role -> role.getName().equalsIgnoreCase(roleName));
     }
     
     public boolean isAdmin() {
-        return role == UserRole.SUPER_ADMIN || role == UserRole.ADMIN;
+        return hasRole("ADMIN") || hasRole("SUPER_ADMIN");
     }
     
     public boolean canManageUsers() {
-        return role == UserRole.SUPER_ADMIN || role == UserRole.ADMIN;
+        return hasRole("ADMIN") || hasRole("SUPER_ADMIN");
     }
     
     // Spring Security için gerekli metodlar

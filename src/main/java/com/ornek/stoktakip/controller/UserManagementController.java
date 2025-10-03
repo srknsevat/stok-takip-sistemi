@@ -1,6 +1,7 @@
 package com.ornek.stoktakip.controller;
 
 import com.ornek.stoktakip.entity.User;
+import com.ornek.stoktakip.entity.Role;
 import com.ornek.stoktakip.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;

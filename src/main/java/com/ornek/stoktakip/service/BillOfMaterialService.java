@@ -2,6 +2,7 @@ package com.ornek.stoktakip.service;
 
 import com.ornek.stoktakip.entity.BillOfMaterial;
 import com.ornek.stoktakip.entity.MaterialCard;
+import com.ornek.stoktakip.entity.BomType;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;

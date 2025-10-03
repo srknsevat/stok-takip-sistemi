@@ -2,6 +2,7 @@ package com.ornek.stoktakip.service.impl;
 
 import com.ornek.stoktakip.entity.BillOfMaterial;
 import com.ornek.stoktakip.entity.MaterialCard;
+import com.ornek.stoktakip.entity.BomType;
 import com.ornek.stoktakip.repository.BillOfMaterialRepository;
 import com.ornek.stoktakip.service.BillOfMaterialService;
 import org.springframework.beans.factory.annotation.Autowired;

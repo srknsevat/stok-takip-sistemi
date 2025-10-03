@@ -2,6 +2,7 @@ package com.ornek.stoktakip.repository;
 
 import com.ornek.stoktakip.entity.BillOfMaterial;
 import com.ornek.stoktakip.entity.MaterialCard;
+import com.ornek.stoktakip.entity.BomType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

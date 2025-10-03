@@ -1,6 +1,7 @@
 package com.ornek.stoktakip.service;
 
 import com.ornek.stoktakip.entity.User;
+import com.ornek.stoktakip.entity.Role;
 import java.util.List;
 import java.util.Optional;
 
@@ -87,4 +88,7 @@ public interface UserService {
     void resetFailedLoginAttempts(String username);
     
     boolean isAccountLocked(String username);
+    
+    // Admin tarafından kullanıcı oluşturma
+    User createUserByAdmin(String username, String email, String password, String firstName, String lastName, List<Role> roles, Long createdBy);
 }

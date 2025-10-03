@@ -302,4 +302,19 @@ public class UserServiceImpl implements UserService {
         // Şimdilik basit bir implementasyon
         return false;
     }
+    
+    @Override
+    @Transactional
+    public User createUserByAdmin(String username, String email, String password, String firstName, String lastName, List<Role> roles, Long createdBy) {
+        User user = new User();
+        user.setUsername(username);
+        user.setEmail(email);
+        user.setPassword(passwordEncoder.encode(password));
+        user.setFirstName(firstName);
+        user.setLastName(lastName);
+        user.setRoles(roles);
+        user.setIsActive(true);
+        
+        return userRepository.save(user);
+    }
 }

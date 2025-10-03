@@ -3,6 +3,8 @@ package com.ornek.stoktakip.controller;
 import com.ornek.stoktakip.entity.Order;
 import com.ornek.stoktakip.service.OrderProcessingService;
 import com.ornek.stoktakip.service.BomExplosionService.*;
+import com.ornek.stoktakip.dto.OrderStockCheckResult;
+import com.ornek.stoktakip.dto.OrderCostResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
