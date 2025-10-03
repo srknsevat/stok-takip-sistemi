@@ -3,6 +3,8 @@ package com.ornek.stoktakip.dto;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 public class ATPReport {
     private LocalDateTime reportDate;
@@ -15,6 +17,10 @@ public class ATPReport {
 
     public ATPReport() {
         this.reportDate = LocalDateTime.now();
+        this.atpResults = new ArrayList<>();
+        this.platformStockUpdates = new HashMap<>();
+        this.warnings = new ArrayList<>();
+        this.errors = new ArrayList<>();
     }
 
     // Getters and Setters
