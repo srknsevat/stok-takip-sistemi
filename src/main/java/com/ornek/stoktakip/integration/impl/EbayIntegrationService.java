@@ -41,7 +41,7 @@ public class EbayIntegrationService implements PlatformIntegrationService {
                 Map<String, Object> responseBody = response.getBody();
                 String platformProductId = (String) responseBody.get("sku");
                 
-                PlatformProduct platformProduct = new PlatformProduct(product, platform, platformProductId);
+                PlatformProduct platformProduct = new PlatformProduct(platform, product, platformProductId, product.getCode());
                 platformProduct.setPlatformSku(product.getCode());
                 platformProduct.setPlatformTitle(product.getName());
                 platformProduct.setPlatformPrice(product.getPrice());
@@ -169,7 +169,8 @@ public class EbayIntegrationService implements PlatformIntegrationService {
                 
                 List<PlatformProduct> platformProducts = new ArrayList<>();
                 for (Map<String, Object> productData : products) {
-                    PlatformProduct platformProduct = processPlatformProductData(platform, productData);
+                    Product product = processPlatformProductData(platform, productData);
+                    PlatformProduct platformProduct = new PlatformProduct(platform, product, product.getCode(), product.getCode());
                     if (platformProduct != null) {
                         platformProducts.add(platformProduct);
                     }

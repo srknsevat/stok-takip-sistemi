@@ -40,7 +40,7 @@ public class ShopifyIntegrationService implements PlatformIntegrationService {
                 Map<String, Object> productResponse = (Map<String, Object>) responseBody.get("product");
                 Long platformProductId = ((Number) productResponse.get("id")).longValue();
                 
-                PlatformProduct platformProduct = new PlatformProduct(product, platform, platformProductId.toString());
+                PlatformProduct platformProduct = new PlatformProduct(platform, product, platformProductId.toString(), product.getCode());
                 platformProduct.setPlatformSku(product.getCode());
                 platformProduct.setPlatformTitle(product.getName());
                 platformProduct.setPlatformPrice(product.getPrice());
@@ -190,7 +190,8 @@ public class ShopifyIntegrationService implements PlatformIntegrationService {
                 
                 List<PlatformProduct> platformProducts = new ArrayList<>();
                 for (Map<String, Object> productData : products) {
-                    PlatformProduct platformProduct = processPlatformProductData(platform, productData);
+                    Product product = processPlatformProductData(platform, productData);
+                    PlatformProduct platformProduct = new PlatformProduct(platform, product, product.getCode(), product.getCode());
                     if (platformProduct != null) {
                         platformProducts.add(platformProduct);
                     }
@@ -370,5 +371,28 @@ public class ShopifyIntegrationService implements PlatformIntegrationService {
     private boolean processInventoryUpdated(Platform platform, Map<String, Object> webhookData) {
         // Envanter güncelleme işlemi
         return true;
+    }
+    
+    @Override
+    public void retryOperation(Platform platform, Runnable operation, int maxRetries) {
+        int attempts = 0;
+        while (attempts < maxRetries) {
+            try {
+                operation.run();
+                return; // Başarılı olursa çık
+            } catch (Exception e) {
+                attempts++;
+                if (attempts >= maxRetries) {
+                    throw new RuntimeException("Maksimum deneme sayısına ulaşıldı: " + e.getMessage(), e);
+                }
+                // Kısa bir bekleme sonrası tekrar dene
+                try {
+                    Thread.sleep(1000 * attempts); // Artan bekleme süresi
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    throw new RuntimeException("İşlem kesintiye uğradı", ie);
+                }
+            }
+        }
     }
 }
