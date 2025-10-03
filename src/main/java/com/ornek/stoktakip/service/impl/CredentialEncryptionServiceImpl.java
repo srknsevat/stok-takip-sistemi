@@ -11,6 +11,9 @@ import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
+/**
+ * API kimlik bilgilerini güvenli şekilde şifreleme/şifre çözme servisi implementasyonu
+ */
 @Service
 public class CredentialEncryptionServiceImpl implements CredentialEncryptionService {
     
@@ -20,75 +23,81 @@ public class CredentialEncryptionServiceImpl implements CredentialEncryptionServ
     @Value("${app.encryption.key:defaultEncryptionKey123456789012345678901234567890}")
     private String encryptionKey;
     
-    private SecretKey secretKey;
-    
-    public CredentialEncryptionServiceImpl() {
-        initializeSecretKey();
-    }
-    
-    private void initializeSecretKey() {
-        try {
-            byte[] keyBytes = encryptionKey.getBytes(StandardCharsets.UTF_8);
-            // AES-256 için 32 byte gerekli
-            byte[] key = new byte[32];
-            System.arraycopy(keyBytes, 0, key, 0, Math.min(keyBytes.length, 32));
-            this.secretKey = new SecretKeySpec(key, ALGORITHM);
-        } catch (Exception e) {
-            System.err.println("Şifreleme anahtarı oluşturulurken hata: " + e.getMessage());
-            // Varsayılan anahtar oluştur
-            try {
-                KeyGenerator keyGenerator = KeyGenerator.getInstance(ALGORITHM);
-                keyGenerator.init(256);
-                this.secretKey = keyGenerator.generateKey();
-            } catch (Exception ex) {
-                System.err.println("Varsayılan şifreleme anahtarı oluşturulamadı: " + ex.getMessage());
-            }
-        }
-    }
-    
     @Override
     public String encrypt(String plainText) {
-        if (plainText == null || plainText.isEmpty()) {
-            return plainText;
-        }
-        
         try {
+            if (plainText == null || plainText.isEmpty()) {
+                return plainText;
+            }
+            
+            SecretKeySpec secretKey = new SecretKeySpec(encryptionKey.getBytes(StandardCharsets.UTF_8), ALGORITHM);
             Cipher cipher = Cipher.getInstance(TRANSFORMATION);
             cipher.init(Cipher.ENCRYPT_MODE, secretKey);
+            
             byte[] encryptedBytes = cipher.doFinal(plainText.getBytes(StandardCharsets.UTF_8));
             return Base64.getEncoder().encodeToString(encryptedBytes);
+            
         } catch (Exception e) {
-            System.err.println("Şifreleme hatası: " + e.getMessage());
-            return plainText; // Hata durumunda orijinal metni döndür
+            throw new RuntimeException("Şifreleme hatası: " + e.getMessage(), e);
         }
     }
     
     @Override
     public String decrypt(String encryptedText) {
-        if (encryptedText == null || encryptedText.isEmpty()) {
-            return encryptedText;
-        }
-        
         try {
+            if (encryptedText == null || encryptedText.isEmpty()) {
+                return encryptedText;
+            }
+            
+            SecretKeySpec secretKey = new SecretKeySpec(encryptionKey.getBytes(StandardCharsets.UTF_8), ALGORITHM);
             Cipher cipher = Cipher.getInstance(TRANSFORMATION);
             cipher.init(Cipher.DECRYPT_MODE, secretKey);
-            byte[] decodedBytes = Base64.getDecoder().decode(encryptedText);
-            byte[] decryptedBytes = cipher.doFinal(decodedBytes);
+            
+            byte[] decryptedBytes = cipher.doFinal(Base64.getDecoder().decode(encryptedText));
             return new String(decryptedBytes, StandardCharsets.UTF_8);
+            
         } catch (Exception e) {
-            System.err.println("Şifre çözme hatası: " + e.getMessage());
-            return encryptedText; // Hata durumunda şifrelenmiş metni döndür
+            throw new RuntimeException("Şifre çözme hatası: " + e.getMessage(), e);
         }
     }
     
     @Override
     public void setEncryptionKey(String key) {
         this.encryptionKey = key;
-        initializeSecretKey();
     }
     
     @Override
     public String getEncryptionKey() {
         return this.encryptionKey;
+    }
+    
+    /**
+     * Metnin şifrelenmiş olup olmadığını kontrol eder
+     */
+    public boolean isEncrypted(String text) {
+        if (text == null || text.isEmpty()) {
+            return false;
+        }
+        
+        try {
+            Base64.getDecoder().decode(text);
+            return true;
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
+    }
+    
+    /**
+     * Güvenli şifreleme anahtarı oluşturur (sadece ilk kurulum için)
+     */
+    public static String generateEncryptionKey() {
+        try {
+            KeyGenerator keyGenerator = KeyGenerator.getInstance(ALGORITHM);
+            keyGenerator.init(256); // 256-bit key
+            SecretKey secretKey = keyGenerator.generateKey();
+            return Base64.getEncoder().encodeToString(secretKey.getEncoded());
+        } catch (Exception e) {
+            throw new RuntimeException("Şifreleme anahtarı oluşturma hatası: " + e.getMessage(), e);
+        }
     }
 }

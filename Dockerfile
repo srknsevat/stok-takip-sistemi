@@ -16,5 +16,5 @@ RUN mvn clean package -DskipTests -q
 # Expose port
 EXPOSE 8080
 
-# Run application
-CMD ["java", "-jar", "target/*.jar"]
+# Run application with railway profile
+CMD ["java", "-Dspring.profiles.active=railway", "-jar", "target/*.jar"]

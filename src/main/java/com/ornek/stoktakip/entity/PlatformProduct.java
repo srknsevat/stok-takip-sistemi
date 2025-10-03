@@ -18,7 +18,7 @@ public class PlatformProduct {
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
-    private MaterialCard product;
+    private Product product;
     
     @Column(name = "platform_product_id")
     private String platformProductId;
@@ -98,7 +98,7 @@ public class PlatformProduct {
     // Constructors
     public PlatformProduct() {}
     
-    public PlatformProduct(Platform platform, MaterialCard product, String platformProductId, String platformSku) {
+    public PlatformProduct(Platform platform, Product product, String platformProductId, String platformSku) {
         this.platform = platform;
         this.product = product;
         this.platformProductId = platformProductId;
@@ -112,8 +112,8 @@ public class PlatformProduct {
     public Platform getPlatform() { return platform; }
     public void setPlatform(Platform platform) { this.platform = platform; }
     
-    public MaterialCard getProduct() { return product; }
-    public void setProduct(MaterialCard product) { this.product = product; }
+    public Product getProduct() { return product; }
+    public void setProduct(Product product) { this.product = product; }
     
     public String getPlatformProductId() { return platformProductId; }
     public void setPlatformProductId(String platformProductId) { this.platformProductId = platformProductId; }
