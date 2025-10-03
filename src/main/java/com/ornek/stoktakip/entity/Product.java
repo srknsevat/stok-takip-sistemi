@@ -213,4 +213,21 @@ public class Product {
     public void setOrderItems(List<OrderItem> orderItems) {
         this.orderItems = orderItems;
     }
+    
+    // Eksik metodlar
+    public BigDecimal getCurrentStock() { 
+        return stock != null ? stock : BigDecimal.ZERO; 
+    }
+    
+    public void setCurrentStock(BigDecimal currentStock) { 
+        this.stock = currentStock; 
+    }
+    
+    public String getMaterialCode() { 
+        return code; 
+    }
+    
+    public void setMaterialCode(String materialCode) { 
+        this.code = materialCode; 
+    }
 } 

@@ -153,4 +153,26 @@ public class BillOfMaterial {
     
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+    
+    // Eksik metodlar
+    public MaterialCard getChildMaterial() { return componentMaterial; }
+    public void setChildMaterial(MaterialCard childMaterial) { this.componentMaterial = childMaterial; }
+    
+    public BigDecimal getUnitCost() { return BigDecimal.ZERO; } // Placeholder
+    public void setUnitCost(BigDecimal unitCost) { /* Placeholder */ }
+    
+    public Integer getTotalTime() { return setupTime + runTime; }
+    public void setTotalTime(Integer totalTime) { /* Calculated field */ }
+    
+    public String getAlternativeBom() { return null; } // Placeholder
+    public void setAlternativeBom(String alternativeBom) { /* Placeholder */ }
+    
+    public LocalDateTime getEffectiveFrom() { return createdAt; }
+    public void setEffectiveFrom(LocalDateTime effectiveFrom) { /* Placeholder */ }
+    
+    public LocalDateTime getEffectiveTo() { return null; } // Placeholder
+    public void setEffectiveTo(LocalDateTime effectiveTo) { /* Placeholder */ }
+    
+    public BigDecimal getTotalCost() { return BigDecimal.ZERO; } // Placeholder
+    public void setTotalCost(BigDecimal totalCost) { /* Placeholder */ }
 }

@@ -1,47 +1,41 @@
 package com.ornek.stoktakip.dto;
 
-import com.ornek.stoktakip.entity.MaterialCard;
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class ATPReport {
-    private MaterialCard material;
     private LocalDateTime reportDate;
-    private ATPResult atpResult;
-    private List<ATPConstraint> constraints;
-    private List<PlatformStockInfo> platformStocks;
-    private String summary;
-    private Map<String, BigDecimal> stockByLevel;
-    
+    private String reportType;
+    private List<ATPResult> atpResults;
+    private Map<String, PlatformStockInfo> platformStockUpdates;
+    private List<String> warnings;
+    private List<String> errors;
+    private String status;
+
     public ATPReport() {
-        this.constraints = new ArrayList<>();
-        this.platformStocks = new ArrayList<>();
-        this.stockByLevel = new HashMap<>();
+        this.reportDate = LocalDateTime.now();
     }
-    
+
     // Getters and Setters
-    public MaterialCard getMaterial() { return material; }
-    public void setMaterial(MaterialCard material) { this.material = material; }
-    
     public LocalDateTime getReportDate() { return reportDate; }
     public void setReportDate(LocalDateTime reportDate) { this.reportDate = reportDate; }
     
-    public ATPResult getAtpResult() { return atpResult; }
-    public void setAtpResult(ATPResult atpResult) { this.atpResult = atpResult; }
+    public String getReportType() { return reportType; }
+    public void setReportType(String reportType) { this.reportType = reportType; }
     
-    public List<ATPConstraint> getConstraints() { return constraints; }
-    public void setConstraints(List<ATPConstraint> constraints) { this.constraints = constraints; }
+    public List<ATPResult> getAtpResults() { return atpResults; }
+    public void setAtpResults(List<ATPResult> atpResults) { this.atpResults = atpResults; }
     
-    public List<PlatformStockInfo> getPlatformStocks() { return platformStocks; }
-    public void setPlatformStocks(List<PlatformStockInfo> platformStocks) { this.platformStocks = platformStocks; }
+    public Map<String, PlatformStockInfo> getPlatformStockUpdates() { return platformStockUpdates; }
+    public void setPlatformStockUpdates(Map<String, PlatformStockInfo> platformStockUpdates) { this.platformStockUpdates = platformStockUpdates; }
     
-    public String getSummary() { return summary; }
-    public void setSummary(String summary) { this.summary = summary; }
+    public List<String> getWarnings() { return warnings; }
+    public void setWarnings(List<String> warnings) { this.warnings = warnings; }
     
-    public Map<String, BigDecimal> getStockByLevel() { return stockByLevel; }
-    public void setStockByLevel(Map<String, BigDecimal> stockByLevel) { this.stockByLevel = stockByLevel; }
+    public List<String> getErrors() { return errors; }
+    public void setErrors(List<String> errors) { this.errors = errors; }
+    
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
 }

@@ -1,44 +1,54 @@
 package com.ornek.stoktakip.dto;
 
-import com.ornek.stoktakip.entity.MaterialCard;
+import com.ornek.stoktakip.entity.Product;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 public class StockConstraintAnalysis {
-    private MaterialCard material;
-    private BigDecimal currentATP;
-    private BigDecimal maxPossibleATP;
-    private List<ATPConstraint> primaryConstraints;
-    private List<ATPConstraint> secondaryConstraints;
-    private String analysisSummary;
+    private Product product;
+    private BigDecimal currentStock;
+    private BigDecimal requiredStock;
+    private BigDecimal shortage;
+    private String constraintType;
+    private String severity;
     private LocalDateTime analysisDate;
-    
+    private List<String> recommendations;
+
     public StockConstraintAnalysis() {
-        this.primaryConstraints = new ArrayList<>();
-        this.secondaryConstraints = new ArrayList<>();
+        this.analysisDate = LocalDateTime.now();
     }
-    
+
+    public StockConstraintAnalysis(Product product, BigDecimal currentStock, BigDecimal requiredStock) {
+        this.product = product;
+        this.currentStock = currentStock;
+        this.requiredStock = requiredStock;
+        this.shortage = requiredStock.subtract(currentStock);
+        this.analysisDate = LocalDateTime.now();
+    }
+
     // Getters and Setters
-    public MaterialCard getMaterial() { return material; }
-    public void setMaterial(MaterialCard material) { this.material = material; }
+    public Product getProduct() { return product; }
+    public void setProduct(Product product) { this.product = product; }
     
-    public BigDecimal getCurrentATP() { return currentATP; }
-    public void setCurrentATP(BigDecimal currentATP) { this.currentATP = currentATP; }
+    public BigDecimal getCurrentStock() { return currentStock; }
+    public void setCurrentStock(BigDecimal currentStock) { this.currentStock = currentStock; }
     
-    public BigDecimal getMaxPossibleATP() { return maxPossibleATP; }
-    public void setMaxPossibleATP(BigDecimal maxPossibleATP) { this.maxPossibleATP = maxPossibleATP; }
+    public BigDecimal getRequiredStock() { return requiredStock; }
+    public void setRequiredStock(BigDecimal requiredStock) { this.requiredStock = requiredStock; }
     
-    public List<ATPConstraint> getPrimaryConstraints() { return primaryConstraints; }
-    public void setPrimaryConstraints(List<ATPConstraint> primaryConstraints) { this.primaryConstraints = primaryConstraints; }
+    public BigDecimal getShortage() { return shortage; }
+    public void setShortage(BigDecimal shortage) { this.shortage = shortage; }
     
-    public List<ATPConstraint> getSecondaryConstraints() { return secondaryConstraints; }
-    public void setSecondaryConstraints(List<ATPConstraint> secondaryConstraints) { this.secondaryConstraints = secondaryConstraints; }
+    public String getConstraintType() { return constraintType; }
+    public void setConstraintType(String constraintType) { this.constraintType = constraintType; }
     
-    public String getAnalysisSummary() { return analysisSummary; }
-    public void setAnalysisSummary(String analysisSummary) { this.analysisSummary = analysisSummary; }
+    public String getSeverity() { return severity; }
+    public void setSeverity(String severity) { this.severity = severity; }
     
     public LocalDateTime getAnalysisDate() { return analysisDate; }
     public void setAnalysisDate(LocalDateTime analysisDate) { this.analysisDate = analysisDate; }
+    
+    public List<String> getRecommendations() { return recommendations; }
+    public void setRecommendations(List<String> recommendations) { this.recommendations = recommendations; }
 }

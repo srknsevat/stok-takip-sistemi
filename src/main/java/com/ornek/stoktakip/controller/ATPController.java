@@ -2,6 +2,8 @@ package com.ornek.stoktakip.controller;
 
 import com.ornek.stoktakip.service.ATPService;
 import com.ornek.stoktakip.service.ATPService.*;
+import com.ornek.stoktakip.dto.*;
+import java.util.ArrayList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
