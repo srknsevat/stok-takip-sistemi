@@ -317,4 +317,46 @@ public class UserServiceImpl implements UserService {
         
         return userRepository.save(user);
     }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public boolean isUserExists(String username, String email) {
+        return userRepository.existsByUsername(username) || userRepository.existsByEmail(email);
+    }
+    
+    @Override
+    @Transactional
+    public void lockUser(Long userId) {
+        User user = userRepository.findById(userId).orElse(null);
+        if (user != null) {
+            user.setIsActive(false);
+            userRepository.save(user);
+        }
+    }
+    
+    @Override
+    @Transactional
+    public void unlockUser(Long userId) {
+        User user = userRepository.findById(userId).orElse(null);
+        if (user != null) {
+            user.setIsActive(true);
+            userRepository.save(user);
+        }
+    }
+    
+    @Override
+    @Transactional
+    public void assignRoles(Long userId, java.util.Set<Role> roles) {
+        User user = userRepository.findById(userId).orElse(null);
+        if (user != null) {
+            user.setRoles(new java.util.ArrayList<>(roles));
+            userRepository.save(user);
+        }
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public List<User> getLockedUsers() {
+        return userRepository.findByIsActiveFalse();
+    }
 }

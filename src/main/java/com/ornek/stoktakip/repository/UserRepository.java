@@ -55,4 +55,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
     
     @Query("SELECT u FROM User u WHERE u.isActive = true ORDER BY u.createdAt DESC")
     List<User> findActiveUsersOrderByCreatedAt();
+    
+    // Eksik metodlar
+    boolean existsByUsername(String username);
+    boolean existsByEmail(String email);
+    List<User> findByIsActiveFalse();
 }

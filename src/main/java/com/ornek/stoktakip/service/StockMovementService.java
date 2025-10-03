@@ -62,4 +62,8 @@ public interface StockMovementService {
      * Stok hareketi raporu
      */
     List<Map<String, Object>> getStockMovementReport(LocalDateTime startDate, LocalDateTime endDate);
+    
+    // Eksik metodlar
+    List<StockMovement> getAllMovements();
+    void saveMovement(StockMovement movement);
 }

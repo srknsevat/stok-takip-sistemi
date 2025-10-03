@@ -91,4 +91,11 @@ public interface UserService {
     
     // Admin tarafından kullanıcı oluşturma
     User createUserByAdmin(String username, String email, String password, String firstName, String lastName, List<Role> roles, Long createdBy);
+    
+    // Eksik metodlar
+    boolean isUserExists(String username, String email);
+    void lockUser(Long userId);
+    void unlockUser(Long userId);
+    void assignRoles(Long userId, java.util.Set<Role> roles);
+    List<User> getLockedUsers();
 }

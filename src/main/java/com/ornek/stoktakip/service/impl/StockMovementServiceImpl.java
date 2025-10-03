@@ -127,4 +127,16 @@ public class StockMovementServiceImpl implements StockMovementService {
         
         return report;
     }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public List<StockMovement> getAllMovements() {
+        return stockMovementRepository.findAllByOrderByMovementDateDesc();
+    }
+    
+    @Override
+    @Transactional
+    public void saveMovement(StockMovement movement) {
+        stockMovementRepository.save(movement);
+    }
 }
